@@ -400,10 +400,10 @@ bool DigiXBeeCellularTransparent::extraModemSetup(void) {
     }
 }*/
 #define timeHost "time.nist.gov"
-uint32_t DigiXBeeCellularTransparent::getNISTTimeOrig(void) {
+inline uint32_t DigiXBeeCellularTransparent::getNISTTimeOrig(void) {
     /* bail if not connected to the internet */
     if (!isInternetAvailable()) {
-        MS_DBG(F("No internet connection, cannot connect to NIST."));
+        PRINTOUT(F("No internet connection, cannot connect to NIST."));
         return 0;
     }
 #if !defined NIST_SERVER_RETRYS
@@ -469,7 +469,6 @@ uint32_t DigiXBeeCellularTransparent::getNISTTimeOrig(void) {
             }
         } else {
             MS_DBG(F("Unable to open TCP to NIST!"));
-            gsmClient.stop();
         }
     }
     return 0;

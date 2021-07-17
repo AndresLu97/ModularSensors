@@ -111,8 +111,8 @@
           the pin modes in the wake function. */                               \
         setModemPinModes();                                                    \
                                                                                \
-        MS_DBG(F("Wait"), _wakeDelayTime_ms - (millis() - _millisPowerOn),     \
-               F("ms longer for warm-up"));                                    \
+        MS_DBG(F("Wait at least"), _wakeDelayTime_ms,F("mS  already done"),    \
+            (millis() - _millisPowerOn));                                      \
         while (millis() - _millisPowerOn < _wakeDelayTime_ms) {}               \
                                                                                \
         if (isModemAwake()) {                                                  \

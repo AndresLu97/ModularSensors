@@ -1450,6 +1450,23 @@ void setup() {
     greenredflash();
     // not in this scope Wire.begin();
 
+    dataLogger.setLoggerPins(wakePin, sdCardSSPin, sdCardPwrPin, -1, greenLED);
+    setupUserButton(); //used for serialInput
+
+#ifdef USE_MS_SD_INI
+    // Set up SD card access
+    PRINTOUT(F("---parseIni Start"));
+    dataLogger.setPs_cache(&ps_ram);
+    dataLogger.parseIniSd(configIniID_def, inihUnhandledFn);
+    epcParser(); //use ps_ram to update classes
+    PRINTOUT(F("---parseIni complete\n"));
+#endif  // USE_MS_SD_INI
+
+    // set the RTC to be in UTC TZ=0
+    Logger::setRTCTimeZone(0);
+
+    bms.printBatteryThresholds();
+
 #ifdef UseModem_Module
 #if !defined UseModem_PushData
     const char None_STR[] = "None";
@@ -1472,23 +1489,6 @@ void setup() {
     modemPhy.pollModemMetadata(loggerModem::POLL_MODEM_META_DATA_OFF);
 #endif
 #endif  // UseModem_Module
-
-    dataLogger.setLoggerPins(wakePin, sdCardSSPin, sdCardPwrPin, -1, greenLED);
-    setupUserButton(); //used for serialInput
-
-#ifdef USE_MS_SD_INI
-    // Set up SD card access
-    PRINTOUT(F("---parseIni Start"));
-    dataLogger.setPs_cache(&ps_ram);
-    dataLogger.parseIniSd(configIniID_def, inihUnhandledFn);
-    epcParser(); //use ps_ram to update classes
-    PRINTOUT(F("---parseIni complete\n"));
-#endif  // USE_MS_SD_INI
-
-    // set the RTC to be in UTC TZ=0
-    Logger::setRTCTimeZone(0);
-
-    bms.printBatteryThresholds();
 
     // Begin the logger
     MS_DBG(F("---dataLogger.begin "));
@@ -1539,7 +1539,7 @@ void setup() {
            bms.isBatteryStatusAbove(true, LiIon_BAT_REQ));
 
 #if defined DigiXBeeWifi_Module
-        // For the WiFi module, it may not be configured if no nscfg.ini file
+        // For the WiFi module, it may not be configured if no ms_cfg.ini file
         // present,
         // this supports the standalone logger, but need to get time at
         // factory/ms_cfg.ini present

@@ -364,12 +364,15 @@ bool Logger::syncRTC() {
                    "with NIST"));
         PRINTOUT(F("This may take up to two minutes!"));
         if (_logModem->modemWake()) {
+            watchDogTimer.resetWatchDog();
             if (_logModem->connectInternet(120000L)) {
                 const static char CONNECT_INTERNET_pm[] EDIY_PROGMEM = 
                 "Connected to internet for RTC sync with NIST"; 
                 PRINT_LOGLINE_P(CONNECT_INTERNET_pm);
+                watchDogTimer.resetWatchDog();
                 success = setRTClock(_logModem->getNISTTime());
                 // success = true;
+                watchDogTimer.resetWatchDog();
                 _logModem->updateModemMetadata();
             } else {
                 const static char COULD_NOT_CONNECT_INTERNET_pm[] EDIY_PROGMEM   = 
@@ -381,7 +384,7 @@ bool Logger::syncRTC() {
             PRINT_LOGLINE_P(COULD_NOT_WAKE_pm);
         }
     }
-
+    watchDogTimer.resetWatchDog();
     // Power down the modem - but only if there will be more than 15 seconds
     // before the NEXT logging interval - it can take the modem that long to
     // shut down
