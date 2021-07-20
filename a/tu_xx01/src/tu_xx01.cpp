@@ -1346,8 +1346,8 @@ inline void dataLogger_do (uint8_t cia_val_override){
     #endif 
 }
 #if defined(__AVR__)
-#if !defined FR_SEED 
-#define FR_SEED 0
+#if !defined FREE_RAM_SEED 
+#define FREE_RAM_SEED 0
 #endif
 #if defined MS_DUMP_FREE_RAM
 inline void initFreeRam() {
@@ -1355,9 +1355,8 @@ inline void initFreeRam() {
     uint8_t * p;
 #define START_FREE_RAM ((uint8_t*)(__brkval == 0 ? (int)&__heap_start : (int)__brkval) )
 #define END_FREE_RAM   (uint16_t)&p
-
     for (p = START_FREE_RAM; (uint16_t)p < END_FREE_RAM; p++) {
-        *p =FR_SEED ;
+        *p =FREE_RAM_SEED ;
     }
 }
 #else 
@@ -1366,6 +1365,7 @@ inline initFreeRam() {return 0;}
 #else 
 inline void initFreeRam() {}
 #endif // defined(__AVR__)
+
 // ==========================================================================
 // Main setup function
 // ==========================================================================

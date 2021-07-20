@@ -910,8 +910,8 @@ inline uint16_t freeRamCnt() {
     }
     return cnt;
 }
-#if !defined FR_SEED 
-#define FR_SEED 0
+#if !defined FREE_RAM_SEED 
+#define FREE_RAM_SEED 0
 #endif
 #define DF_RAM_LINE 16
 #define MS_DUMP_FREE_RAM 1
@@ -933,16 +933,16 @@ inline uint16_t dumpFreeRam(uint16_t maxCount)
     Serial.print(F("to stack(high)=0x"));
     Serial.print((uint16_t)&fr_cnt ,HEX);
     Serial.print(F(")  size(dec):"));
-    Serial.print((uint16_t)rmp);
+    Serial.print( (uint16_t)&fr_cnt - (uint16_t)rmp );
     rmp =(uint8_t *) ((uint16_t)rmp & 0xFFF0); //Start beginning of 16byte section
     smartList1st=true;
     for (;(uint16_t)rmp< (uint16_t)&fr_cnt; ) 
     {
-        //* smart list ~ if all FR_SEED don't list */
+        //* smart list ~ if all FREE_RAM_SEED don't list */
         smartList = true;
         for (lp=0;lp <DF_RAM_LINE ;lp++) 
         {
-            if (FR_SEED  != *(rmp+lp)){ 
+            if (FREE_RAM_SEED  != *(rmp+lp)){ 
                 smartList=false;
                 break;
             }
