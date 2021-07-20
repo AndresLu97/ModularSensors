@@ -1345,7 +1345,27 @@ inline void dataLogger_do (uint8_t cia_val_override){
     dataLogger.logDataAndPublish(); 
     #endif 
 }
+#if defined(__AVR__)
+#if !defined FR_SEED 
+#define FR_SEED 0
+#endif
+#if defined MS_DUMP_FREE_RAM
+inline void initFreeRam() {
+    extern int16_t __heap_start, *__brkval;
+    uint8_t * p;
+#define START_FREE_RAM ((uint8_t*)(__brkval == 0 ? (int)&__heap_start : (int)__brkval) )
+#define END_FREE_RAM   (uint16_t)&p
 
+    for (p = START_FREE_RAM; (uint16_t)p < END_FREE_RAM; p++) {
+        *p =FR_SEED ;
+    }
+}
+#else 
+inline initFreeRam() {return 0;}
+#endif //MS_DUMP_FREE_RAM
+#else 
+inline void initFreeRam() {}
+#endif // defined(__AVR__)
 // ==========================================================================
 // Main setup function
 // ==========================================================================
@@ -1354,7 +1374,7 @@ void setup() {
     // uint8_t resetBackupExit = REG_RSTC_BKUPEXIT; AVR ?//Reads from hw
     uint8_t mcu_status = MCUSR; //is this already cleared by Arduino startup???
     //MCUSR = 0; //reset for unique read
-
+    initFreeRam();
 // Wait for USB connection to be established by PC
 // NOTE:  Only use this when debugging - if not connected to a PC, this
 // could prevent the script from starting

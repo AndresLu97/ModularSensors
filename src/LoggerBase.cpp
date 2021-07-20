@@ -895,6 +895,107 @@ int16_t freeRamLb() {
     int16_t   v;
     return  freeRamMcr();
 }
+/* SP initialized to top of RAM, and grows downwards
+Static is allocated at beginning __bss, then heap*/
+
+inline uint16_t freeRamCnt() {
+    extern int16_t __heap_start, *__brkval;
+    uint16_t  cnt = 0;
+    uint8_t * p;
+#define START_FREE_RAM ((uint8_t*)(__brkval == 0 ? (int)&__heap_start : (int)__brkval) )
+#define END_FREE_RAM   (uint16_t)&p
+
+    for (p = START_FREE_RAM; (uint16_t)p < END_FREE_RAM; p++) {
+        if(0 == *p) cnt++;
+    }
+    return cnt;
+}
+#if !defined FR_SEED 
+#define FR_SEED 0
+#endif
+#define DF_RAM_LINE 16
+#define MS_DUMP_FREE_RAM 1
+#if defined MS_DUMP_FREE_RAM
+inline uint16_t dumpFreeRam(uint16_t maxCount)
+{
+    extern int16_t __heap_start, *__brkval;
+    const uint8_t *rmp = (uint8_t *)(__brkval == 0 ? (int)&__heap_start : (int)__brkval);//_end top heap ;
+    uint8_t  rmp_ch;
+    char txt_buf[DF_RAM_LINE+2];
+    uint8_t txt_idx;
+    bool smartList,smartList1st;
+    uint8_t lp, sl_cnt;
+    uint16_t nu_cnt=0;
+    uint16_t fr_cnt=0; //Top of stack, last parmater
+
+    Serial.print(F("\ndumpFreeRam from heap(low)=0x"));
+    Serial.print((uint16_t)__brkval,HEX);
+    Serial.print(F("to stack(high)=0x"));
+    Serial.print((uint16_t)&fr_cnt ,HEX);
+    Serial.print(F(")  size(dec):"));
+    Serial.print((uint16_t)rmp);
+    rmp =(uint8_t *) ((uint16_t)rmp & 0xFFF0); //Start beginning of 16byte section
+    smartList1st=true;
+    for (;(uint16_t)rmp< (uint16_t)&fr_cnt; ) 
+    {
+        //* smart list ~ if all FR_SEED don't list */
+        smartList = true;
+        for (lp=0;lp <DF_RAM_LINE ;lp++) 
+        {
+            if (FR_SEED  != *(rmp+lp)){ 
+                smartList=false;
+                break;
+            }
+        } 
+
+        if (!smartList) {
+            fr_cnt +=lp;
+            //List line compactly in hex
+            Serial.print(F("\n0x"));
+            Serial.print((uint16_t)rmp,HEX);
+            txt_idx=0;
+            for (lp=0;lp<DF_RAM_LINE ;lp++) {
+                if (0==(lp&0x3)) {Serial.print(F(" "));} //Some readability
+                rmp_ch = *rmp;
+                if ( 0 == (rmp_ch & 0xF0) ) {Serial.print(F("0"));} //readability
+                Serial.print(rmp_ch,HEX);
+                if (isprint(rmp_ch)) {
+                    txt_buf[txt_idx++]=rmp_ch;
+                }else {
+                    txt_buf[txt_idx++]='.';
+                }
+                rmp++;
+            }
+            delay(5); //10mS~100 lines/sec ~ For115K baud 11K chars/Sec, 183lines/sec
+            txt_buf[DF_RAM_LINE]=0; //String terminatior
+            Serial.print(F(" ;"));
+            Serial.print(txt_buf);
+            delay(5);
+            smartList1st=true;
+        } else {
+            fr_cnt += DF_RAM_LINE;
+            nu_cnt += DF_RAM_LINE;
+            //List header
+            if (smartList1st) {
+                Serial.print(F("\nUnUsed 1k 0x"));
+                smartList1st=false;
+                Serial.print((uint16_t)rmp,HEX);
+                sl_cnt=0;
+            } else {
+                Serial.print(F("."));
+            }
+            // 64*256byte sections
+            if (63 < ++sl_cnt) {smartList1st=true;} //Start header agains 
+            rmp+=DF_RAM_LINE;
+        }
+        if(fr_cnt>maxCount){PRINTOUT(F("  ..exceeded maxCount"),maxCount); break; }//Safety breakout
+    }
+    PRINTOUT(F("\nFree ram never allocated between (bytes dec)"),nu_cnt,F("and"),fr_cnt);
+    return fr_cnt;
+} //dumpFreeRam(
+#else 
+inline uint16_t dumpFreeRam(uint16_t maxCount) {return 0;}
+#endif //MS_DUMP_FREE_RAM
 #elif defined(ARDUINO_ARCH_SAMD)
 extern "C" char* sbrk(int i);
 
@@ -902,6 +1003,8 @@ int16_t freeRamCalcLb() {
     char stack_dummy = 0;
     return &stack_dummy - sbrk(0);
 }
+inline uint16_t freeRamCnt() {return 0;} 
+inline uint16_t dumpFreeRam(uint16_t maxCount) {return 0;}
 #endif
 // Puts the system to sleep to conserve battery life.
 // This DOES NOT sleep or wake the sensors!!
@@ -976,7 +1079,7 @@ void        Logger::systemSleep(uint8_t sleep_min) {
 #endif
 
     // Send one last message before shutting down serial ports
-    PRINTOUT(F("Going to sleep. Ram("),freeRamLb(),F(")  ZZzzz..."));
+    PRINTOUT(F("Going to sleep. Ram("),freeRamLb(),F("/"),freeRamCnt(),F(")  ZZzzz..."));
 
 // Wait until the serial ports have finished transmitting
 // This does not clear their buffers, it just waits until they are finished

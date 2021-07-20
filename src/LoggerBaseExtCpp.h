@@ -903,6 +903,7 @@ void Logger::logDataAndPubReliably(uint8_t cia_val_override) {
 
         // Unset flag
         Logger::isLoggingNow = false;
+        dumpFreeRam(8256); //large Number
     }
 
     // Check if it was instead the testing interrupt that woke us up
