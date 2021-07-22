@@ -1085,6 +1085,7 @@ void unusedBitsMakeSafe() {
 };
 
 
+#if defined MS_TTY_USER_INPUT
 // ==========================================================================
 bool userButton1Act = false;
 void userButtonISR() {
@@ -1105,11 +1106,16 @@ void userButtonISR() {
                F("user input."));
     }
 } // setupUserButton
+#else 
+#define setupUserButton()
+#endif //MS_TTY_USER_INPUT
 
 
+#if defined MS_TTY_USER_INPUT
 // ==========================================================================
 // Data section for userTuple processing
-String serialInputBuffer = "";
+#define  USER_INPUT_BUF_SZ 64
+String serialInputBuffer = ""; //Could this be reason #55, Avoid String
 bool  serial_1st_char_bool =true;
 
 bool   userInputCollection=false;
@@ -1247,6 +1253,9 @@ void serialInputCheck()
     } //while
     dataLogger.watchDogTimer.resetWatchDog();
 }//serialInputCheck
+//#else 
+//#define serialInputCheck() 
+#endif // MS_TTY_USER_INPUT
 
 // ==========================================================================
 // Poll management sensors- eg FuelGauges status  
@@ -1681,6 +1690,7 @@ void setup() {
 
 void loop() {
     managementSensorsPoll();
+    #if defined MS_TTY_USER_INPUT
     if ((true == userButton1Act ) || Serial.available()){
         userInputCollection =true;
         if (userButton1Act) {
@@ -1689,6 +1699,7 @@ void loop() {
         serialInputCheck();
         userButton1Act = false;
     } 
+    #endif // MS_TTY_USER_INPUT
     #if defined PRINT_EXTADC_BATV_VAR    
     // Signal when battery is next read, to give user information
     userPrintExtBatV_avlb=true;
