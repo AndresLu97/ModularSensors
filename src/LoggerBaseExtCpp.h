@@ -830,32 +830,36 @@ void Logger::logDataAndPubReliably(uint8_t cia_val_override) {
                         const static char CONNECT_INTERNET_pm[] EDIY_PROGMEM = 
                         "Connected Internet"; 
                         PRINT_LOGLINE_P(CONNECT_INTERNET_pm);
+                        // be nice to add _logModem->getModemName()
+                        //This doesn't work PRINT_LOGLINE_P2(CONNECT_INTERNET_pm,_logModem->getModemName().c_str());
                         // Publish data to remotes
                         watchDogTimer.resetWatchDog();
-                        // publishDataToRemotes();
                         publishDataQuedToRemotes(true);
                         watchDogTimer.resetWatchDog();
 
-// Sync the clock at midnight
+// Sync the clock at midnight or on the hour
 #define NIST_SYNC_DAY 86400
 #define NIST_SYNC_HR 3600
-#define NIST_SYNC_RATE NIST_SYNC_HR
-#if 0
-                syncTimeCheck_normalized = Logger::markedEpochTime/logIntvl_sec;
-                syncTimeCheck_remainder = syncTimeCheck_normalized %(NIST_SYNC_RATE/logIntvl_sec);
-                MS_DBG(F("SyncTimeCheck "),syncTimeCheck_remainder," Rate",logIntvl_sec," Time",Logger::markedEpochTime);
-                if (Logger::markedEpochTime != 0 && syncTimeCheck_remainder == 0)
-#endif
-                        if ((Logger::markedEpochTime != 0 &&
-                             Logger::markedEpochTime % 86400 == 43200) ||
-                            !isRTCSane(Logger::markedEpochTime)) {
-                            // Sync the clock at noon
-                            MS_DBG(F("Running a daily clock sync..."));
-                            setRTClock(_logModem->getNISTTime());
-                            const static char CLOCK_SYNC_pm[] EDIY_PROGMEM ="Clock Synced"; 
-                            PRINT_LOGLINE_P(CLOCK_SYNC_pm);                            
-                            watchDogTimer.resetWatchDog();
+#if defined NIST_SYNC_HOURLY
+#define NIST_SYNC_RATE NIST_SYNC_HR 
+#else
+#define NIST_SYNC_RATE NIST_SYNC_DAY
+#endif //NIST_SYNC_HOURLY
+                        uint32_t logIntvl_sec = _loggingIntervalMinutes * 60; 
+                        uint32_t timeToday_sec = markedEpochTime % NIST_SYNC_RATE;
+                        bool doSyncTimeCheck = (timeToday_sec< logIntvl_sec);
+                        /*MS_DBG*/PRINTOUT(F("SyncTimeCheck "),doSyncTimeCheck," modulo_sec",timeToday_sec," Time",Logger::markedEpochTime);
+                        if (doSyncTimeCheck) {
+                            MS_DBG(F("Running an NIST clock sync..."));
+                            if(setRTClock(_logModem->getNISTTime())) {
+                                const static char CLOCK_NIST_OK_pm[] EDIY_PROGMEM ="Clock Nist Synced"; 
+                                PRINT_LOGLINE_P(CLOCK_NIST_OK_pm);                                       
+                            } else {
+                                const static char CLOCK_NIST_FAIL_pm[] EDIY_PROGMEM ="Clock Nist Failed"; 
+                                PRINT_LOGLINE_P(CLOCK_NIST_FAIL_pm);       
+                            }
                         }
+                        watchDogTimer.resetWatchDog();
 
                         // Update the modem metadata
                         MS_DBG(F("Updating modem metadata..."));
@@ -877,7 +881,7 @@ void Logger::logDataAndPubReliably(uint8_t cia_val_override) {
                 // Turn the modem off
                 _logModem->modemSleepPowerDown();
             } else
-                MS_DBG(F("No _logModem "));
+                PRINTOUT(F("Internet failed, no _logModem "));
         } else if (cia_val & CIA_RLB_READINGS) {
             // Values not transmitted,  save readings for later transmission
             PRINTOUT(F("logDataAndPubReliably - store readings, no pub"));
@@ -899,6 +903,7 @@ void Logger::logDataAndPubReliably(uint8_t cia_val_override) {
 
         // Unset flag
         Logger::isLoggingNow = false;
+        dumpFreeRam(8256); //large Number
     }
 
     // Check if it was instead the testing interrupt that woke us up
@@ -1034,11 +1039,11 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                          F("sec. Queued readings="), desz_pending_records);
 
                 if (HTTPSTATUS_CREATED_201 == rspCode) {
-                    MS_DBG(F("pubDQTR retry from"), serzQuedFn);
                     // Do retrys through publisher - if file exists
                     if (sd1_card_fatfs.exists(serzQuedFn)) {
                         uint16_t tot_posted           = 0;
                         uint16_t cnt_for_pwr_analysis = 1;
+                        MS_DBG(F("pubDQTR retry from"), serzQuedFn);
                          deszQuedStart();
                         while ((dslStatus = deszQuedLine()) )  {
 
@@ -1095,7 +1100,7 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                         } else {
                             serzQuedCloseFile(false);
                         }
-                    }
+                    } else { MS_DBG(F("pubDQTR no queued file"), serzQuedFn);}
                 } else {
                     MS_DBG(F("pubDQTR drop retrys. rspCode"), rspCode);
                 }
@@ -1121,7 +1126,7 @@ bool Logger::serzQuedStart(char uniqueId) {
         PRINTOUT(F("serzQuedStart open err"));
         return false;
     } else {
-        MS_DBG(F("serzQuedStart open"), serzQuedFn);
+        MS_DEEP_DBG(F("serzQuedStart open"), serzQuedFn);
     }
     return true;
 }
@@ -1172,7 +1177,7 @@ inline uint16_t Logger::serzQuedFlushFile() {
             PRINTOUT(F("seQFF remove1 err"), tempFn);
             sd1_Err("seQFF err6 remove");
         } else {
-            MS_DBG(F("seQFF remove "), tempFn);
+            MS_DEEP_DBG(F("seQFF remove "), tempFn);
         }
     }  
     retBool = tgtoutFile.open(tempFn, (O_WRITE | O_CREAT));
@@ -1182,7 +1187,7 @@ inline uint16_t Logger::serzQuedFlushFile() {
         //todo close all other files
         return 0;
     } else {
-        MS_DBG(F("seQFF opened "), tempFn);
+        MS_DEEP_DBG(F("seQFF opened "), tempFn);
     }
 
     num_char  = strlen(deszq_line);
@@ -1234,19 +1239,19 @@ inline uint16_t Logger::serzQuedFlushFile() {
         if (!retBool) {
             sd1_Err("seQFF serzQuedFile.close2 err");
             return  num_lines;
-        } else {MS_DBG(F("seQFF close serzQuedFile")); }
+        } else {MS_DEEP_DBG(F("seQFF close serzQuedFile")); }
 
         retBool = tgtoutFile.rename(serzQuedFn);
         if (!retBool) {
             sd1_Err("seQFF tgtoutFile.rename err");
             return  num_lines;
-        } else {MS_DBG(F("seQFF rename "), tempFn, F("to"), serzQuedFn); }
+        } else {MS_DEEP_DBG(F("seQFF rename "), tempFn, F("to"), serzQuedFn); }
 
         retBool = tgtoutFile.close();
         if (!retBool) {
             sd1_Err("seQFF tgtoutFile.close1 err");
             return  num_lines;
-        } else {MS_DBG(F("seQFF closed tgtoutFile")); }
+        } else {MS_DEEP_DBG(F("seQFF closed tgtoutFile")); }
     }
 
     return  num_lines;
@@ -1270,7 +1275,7 @@ bool Logger::serzRdel_Line() {
         outputSz += serzRdelFile.println();
         // setFileAccessTime(serzRdelFile);
         serzRdelFile.close();
-        MS_DBG(F("serzRdel_Line on"), serzRdelFn_str, F(" at "),
+        MS_DEEP_DBG(F("serzRdel_Line on"), serzRdelFn_str, F(" at "),
                markedEpochTime, F(" size="), outputSz);
     } else {
         PRINTOUT(F("serzRdel_Line; No file"), serzRdelFn_str);
@@ -1297,7 +1302,7 @@ deszLine()  to populate
 char* Logger::deszFind(const char* in_line, char caller_id) {
     char* retResult = strchr(in_line, DELIM_CHAR2);
     if (NULL != retResult) return retResult;
-    MS_DBG(F("deszFind NULL found on "), caller_id);
+    MS_DEEP_DBG(F("deszFind NULL found on "), caller_id);
     // For NULL return pointer as per strchrnul
     // should only occur on last search
     return (char*)(in_line + strlen(in_line));
@@ -1322,7 +1327,7 @@ bool Logger::deszRdelStart() {
         PRINTOUT(F("deRS; No file "), serzRdelFn_str);
         return false;
     } else {
-        MS_DBG(F("deRS open RDWR"), serzRdelFn_str);
+        MS_DEEP_DBG(F("deRS open RDWR"), serzRdelFn_str);
     }
     return true;
 }
@@ -1335,11 +1340,11 @@ bool Logger::deszQuedStart() {
     // Expect serzQuedFn to be setup in serzQuedStart
     if (!serzQuedFile.open(serzQuedFn, O_RDWR)) {
         // This could be that there aren;t any Qued readings
-        MS_DBG(F("deQS; No file "), serzQuedFn);
+        MS_DEEP_DBG(F("deQS; No file "), serzQuedFn);
         // sd1_card_fatfs.ls();
         return false;
     } else {
-        MS_DBG(F("deQS open READ"), serzQuedFn);
+        MS_DEEP_DBG(F("deQS open READ"), serzQuedFn);
     }
 
     return true;
@@ -1397,7 +1402,7 @@ bool Logger::deszLine(File* filep) {
     deszq_nextCharSz  = nextCharEnd - deszq_nextChar;
 
     deszq_timeVariant_sz = strlen(deszq_nextChar) - 1;
-    MS_DBG(F("TimeVariant sz"), deszq_timeVariant_sz, F(":"), deszq_nextChar,
+    MS_DBG(F("deszLine Reading sz"), deszq_timeVariant_sz, F(":"), deszq_nextChar,
            F(":"));
     return true;
 }
@@ -1448,7 +1453,7 @@ bool Logger::deszRdelClose(bool deleteFile) {
         PRINTOUT(F("deSRC close err"), serzRdelFn_str);
         sd1_Err("serzBegin err close");
     } else {
-        MS_DBG(F("deSRC closed"), serzRdelFn_str);
+        MS_DEEP_DBG(F("deSRC closed"), serzRdelFn_str);
     }
     if (deleteFile) {
         // if (!(retVal = serzRdelFile.remove())) {
@@ -1456,7 +1461,7 @@ bool Logger::deszRdelClose(bool deleteFile) {
             PRINTOUT(F("deSRC remove err"), serzRdelFn_str);
             sd1_Err("serzBegin err remove");
         }
-        MS_DBG(F("deSRC removed"), serzRdelFn_str);
+        MS_DEEP_DBG(F("deSRC removed"), serzRdelFn_str);
     }
 
     return retVal;

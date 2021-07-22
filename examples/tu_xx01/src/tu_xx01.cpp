@@ -1085,6 +1085,7 @@ void unusedBitsMakeSafe() {
 };
 
 
+#if defined MS_TTY_USER_INPUT
 // ==========================================================================
 bool userButton1Act = false;
 void userButtonISR() {
@@ -1105,11 +1106,16 @@ void userButtonISR() {
                F("user input."));
     }
 } // setupUserButton
+#else 
+#define setupUserButton()
+#endif //MS_TTY_USER_INPUT
 
 
+#if defined MS_TTY_USER_INPUT
 // ==========================================================================
 // Data section for userTuple processing
-String serialInputBuffer = "";
+#define  USER_INPUT_BUF_SZ 64
+String serialInputBuffer = ""; //Could this be reason #55, Avoid String
 bool  serial_1st_char_bool =true;
 
 bool   userInputCollection=false;
@@ -1247,6 +1253,9 @@ void serialInputCheck()
     } //while
     dataLogger.watchDogTimer.resetWatchDog();
 }//serialInputCheck
+//#else 
+//#define serialInputCheck() 
+#endif // MS_TTY_USER_INPUT
 
 // ==========================================================================
 // Poll management sensors- eg FuelGauges status  
@@ -1344,6 +1353,26 @@ inline void dataLogger_do (uint8_t cia_val_override){
     dataLogger.logDataAndPublish(); 
     #endif 
 }
+#if defined(__AVR__)
+#if !defined FREE_RAM_SEED 
+#define FREE_RAM_SEED 0
+#endif
+#if defined MS_DUMP_FREE_RAM
+inline void initFreeRam() {
+    extern int16_t __heap_start, *__brkval;
+    uint8_t * p;
+#define START_FREE_RAM ((uint8_t*)(__brkval == 0 ? (int)&__heap_start : (int)__brkval) )
+#define END_FREE_RAM   (uint16_t)&p
+    for (p = START_FREE_RAM; (uint16_t)p < END_FREE_RAM; p++) {
+        *p =FREE_RAM_SEED ;
+    }
+}
+#else 
+inline initFreeRam() {return 0;}
+#endif //MS_DUMP_FREE_RAM
+#else 
+inline void initFreeRam() {}
+#endif // defined(__AVR__)
 
 // ==========================================================================
 // Main setup function
@@ -1351,7 +1380,8 @@ inline void dataLogger_do (uint8_t cia_val_override){
 void setup() {
     // uint8_t resetCause = REG_RSTC_RCAUSE;        AVR ?//Reads from hw
     // uint8_t resetBackupExit = REG_RSTC_BKUPEXIT; AVR ?//Reads from hw
-
+    //MCUSR = 0; //reset for unique read
+    initFreeRam();
 // Wait for USB connection to be established by PC
 // NOTE:  Only use this when debugging - if not connected to a PC, this
 // could prevent the script from starting
@@ -1450,6 +1480,23 @@ void setup() {
     greenredflash();
     // not in this scope Wire.begin();
 
+    dataLogger.setLoggerPins(wakePin, sdCardSSPin, sdCardPwrPin, -1, greenLED);
+    setupUserButton(); //used for serialInput
+
+#ifdef USE_MS_SD_INI
+    // Set up SD card access
+    PRINTOUT(F("---parseIni Start"));
+    dataLogger.setPs_cache(&ps_ram);
+    dataLogger.parseIniSd(configIniID_def, inihUnhandledFn);
+    epcParser(); //use ps_ram to update classes
+    PRINTOUT(F("---parseIni complete\n"));
+#endif  // USE_MS_SD_INI
+
+    // set the RTC to be in UTC TZ=0
+    Logger::setRTCTimeZone(0);
+
+    bms.printBatteryThresholds();
+
 #ifdef UseModem_Module
 #if !defined UseModem_PushData
     const char None_STR[] = "None";
@@ -1472,23 +1519,6 @@ void setup() {
     modemPhy.pollModemMetadata(loggerModem::POLL_MODEM_META_DATA_OFF);
 #endif
 #endif  // UseModem_Module
-
-    dataLogger.setLoggerPins(wakePin, sdCardSSPin, sdCardPwrPin, -1, greenLED);
-    setupUserButton(); //used for serialInput
-
-#ifdef USE_MS_SD_INI
-    // Set up SD card access
-    PRINTOUT(F("---parseIni Start"));
-    dataLogger.setPs_cache(&ps_ram);
-    dataLogger.parseIniSd(configIniID_def, inihUnhandledFn);
-    epcParser(); //use ps_ram to update classes
-    PRINTOUT(F("---parseIni complete\n"));
-#endif  // USE_MS_SD_INI
-
-    // set the RTC to be in UTC TZ=0
-    Logger::setRTCTimeZone(0);
-
-    bms.printBatteryThresholds();
 
     // Begin the logger
     MS_DBG(F("---dataLogger.begin "));
@@ -1539,7 +1569,7 @@ void setup() {
            bms.isBatteryStatusAbove(true, LiIon_BAT_REQ));
 
 #if defined DigiXBeeWifi_Module
-        // For the WiFi module, it may not be configured if no nscfg.ini file
+        // For the WiFi module, it may not be configured if no ms_cfg.ini file
         // present,
         // this supports the standalone logger, but need to get time at
         // factory/ms_cfg.ini present
@@ -1652,6 +1682,7 @@ void setup() {
 
 void loop() {
     managementSensorsPoll();
+    #if defined MS_TTY_USER_INPUT
     if ((true == userButton1Act ) || Serial.available()){
         userInputCollection =true;
         if (userButton1Act) {
@@ -1660,6 +1691,7 @@ void loop() {
         serialInputCheck();
         userButton1Act = false;
     } 
+    #endif // MS_TTY_USER_INPUT
     #if defined PRINT_EXTADC_BATV_VAR    
     // Signal when battery is next read, to give user information
     userPrintExtBatV_avlb=true;
