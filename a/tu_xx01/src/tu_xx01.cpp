@@ -1253,8 +1253,23 @@ void serialInputCheck()
     } //while
     dataLogger.watchDogTimer.resetWatchDog();
 }//serialInputCheck
-//#else 
-//#define serialInputCheck() 
+#else 
+long ch_count_tot=0; 
+uint8_t serialInputCount() 
+{
+    //char incoming_ch;
+    uint8_t ch_count_now=0;
+ 
+    //Read any input queue
+    while (Serial.available()) {
+        //incoming_ch = 
+        Serial.read();
+        if (++ch_count_now > 250) break;
+    }
+    ch_count_tot+=ch_count_now;
+
+    return ch_count_now;
+}
 #endif // MS_TTY_USER_INPUT
 
 // ==========================================================================
@@ -1699,6 +1714,15 @@ void loop() {
         serialInputCheck();
         userButton1Act = false;
     } 
+    #else 
+    uint8_t ch_count_now;
+    ch_count_now=  serialInputCount();
+    if (ch_count_now) {
+        PRINTOUT(F("\n\n  Char Cnt ** UNEXPECTED ** Rx"), ch_count_now,F(" Tot since reset"),ch_count_tot);
+    } else {
+        PRINTOUT(F("Char Cnt tot since reset"),ch_count_tot);
+    }
+
     #endif // MS_TTY_USER_INPUT
     #if defined PRINT_EXTADC_BATV_VAR    
     // Signal when battery is next read, to give user information
