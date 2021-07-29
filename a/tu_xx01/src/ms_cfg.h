@@ -133,8 +133,8 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define UseModem_PushData 1
 //Select buildtime Publishers  supported. 
 // The persisten resources (EEPROM) are allocated as a baselevel no matter what options 
-#define USE_PUB_MMW      1
-//#define USE_PUB_TSMQTT   1
+//#define USE_PUB_MMW      1
+#define USE_PUB_TSMQTT   1
 //#define  USE_PUB_UBIDOTS 1
 
 // Required for TinyGsmClient.h
