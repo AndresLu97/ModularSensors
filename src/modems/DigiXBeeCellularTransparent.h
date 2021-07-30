@@ -214,9 +214,7 @@ class DigiXBeeCellularTransparent : public DigiXBee {
     // Az Extensions
     void     setApn(const char* APN, bool copyId = false);
     String   getApn(void);
-    uint32_t getNISTTimeOrig(void);
     uint32_t getTimeNTP(void);
-    uint32_t getTimeCellTower(void);
 };
 /**@}*/
 #endif  // SRC_MODEMS_DIGIXBEECELLULARTRANSPARENT_H_
