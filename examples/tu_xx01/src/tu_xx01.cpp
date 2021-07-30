@@ -55,7 +55,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #undef MS_DEBUGGING_DEEP
 #include <Arduino.h>          // The base Arduino library
 #include <EnableInterrupt.h>  // for external and pin change interrupts
-#include <LoggerBase.h>       // The modular sensors library
+#include <ModularSensors.h>   // Include the main header for ModularSensors
 #if defined USE_PS_EEPROM
 #include "EEPROM.h"
 #endif  // USE_PS_EEPROM
@@ -1253,8 +1253,23 @@ void serialInputCheck()
     } //while
     dataLogger.watchDogTimer.resetWatchDog();
 }//serialInputCheck
-//#else 
-//#define serialInputCheck() 
+#else 
+long ch_count_tot=0; 
+uint8_t serialInputCount() 
+{
+    //char incoming_ch;
+    uint8_t ch_count_now=0;
+ 
+    //Read any input queue
+    while (Serial.available()) {
+        //incoming_ch = 
+        Serial.read();
+        if (++ch_count_now > 250) break;
+    }
+    ch_count_tot+=ch_count_now;
+
+    return ch_count_now;
+}
 #endif // MS_TTY_USER_INPUT
 
 // ==========================================================================
