@@ -7,7 +7,7 @@ ___
 
 If you're new to EnviroDIY, I suggest you check out the [Just Getting Started](https://envirodiy.github.io/ModularSensors/page_getting_started.html) section of the documentation!
 
-This Arduino library gives environmental sensors a common interface of functions for use with Arduino-compatible dataloggers, such as the EnviroDIY Mayfly.
+This repo "ModularSensors" gives environmental sensors a common interface of functions for use with Arduino-compatible dataloggers, such as the EnviroDIY Mayfly.
 The ModularSensors library is specifically designed to support wireless, solar-powered environmental data logging applications, that is, to:
 * Retrieve data from many physical sensors;
 * Save that data to a SD memory card;
@@ -19,17 +19,17 @@ The ModularSensors library is specifically designed to support wireless, solar-p
 
 ## New for this fork   
 
-* Adds geographically scaling for multiple loggers using the same program/binays. It does this with a  custome ms_cfg.ini configuration file on the SD memory card
+* Reliable delivery of the sensor readings to the cloud. If it doesn't work the first time, it retrys later.
+* Adds geographically scaling for multiple loggers using the same program/binarys. It does this with a  custom ms_cfg.ini configuration file on the SD memory card
+* If the battery power drops below a threshold, it stops transmitting data to the web and conserves power by only polling the instruments. When the battery is charged it then delivers all the readings to the web. 
+* Manages the type of battery power, with best management practices for power demand management. One option is the LiIon rechargeable battery + solar panel. Another option is standalone, no solar panel capability. Confgiruable in the ms_cfg.ini
 * Adds electronic configuration information to the Mayfly board, so that the readings can be traced to specific mayfly at a specific geographical loction.
-* Manages the available battery power, with best management practices for power demand management. One option is the LiIon rechargeable battery + solar panel. Another option is standalone, no solar panel capability. Confgiruable in the ms_cfg.ini
+* Adds battery power monitoring through a coloumb counter.
 * Tested for ruggedness/reliability with the Xbee LTE & WiFi S6 modules.
 * prebuilt hex files at https://github.com/neilh10/ms_releases/wiki
-* Specific development stream in ModularSensors\a\.. directories (Mayfly and other ARM SAMDx boards)   
-
+ 
 * ONLY applies to ModularSensors\examples\tu_xx01 (Mayfly)
-* Scales the rollout of multiple loggers with ms_cfg.ini configuration on the SD memory card
-* Manages the available LiIon battery power, with best management practices for power demand management,
-* Tested for ruggedness/reliability with the Xbee WiFi S6 module (and future the Xbee LTE family and Xbee ISM band modules)
+* Specific development stream in ModularSensors\a\.. directories (Mayfly and other ARM SAMDx boards) 
 
 To use, from the IDE Platformio (platformio.org) open folder ModularSensors\a\<select a folder> - and press icon "Build" (the tick mark), then download to the target.   
 tbd - download a prebuilt image   
