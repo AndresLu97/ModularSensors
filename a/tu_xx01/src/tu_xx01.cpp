@@ -50,12 +50,13 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #undef MS_DEBUG_THIS_MODULE
 #define MS_DEBUG_THIS_MODULE 2
 #endif  // MS_TU_XX_DEBUG_DEEP
+
 #include "ModSensorDebugger.h"
 #undef MS_DEBUGGING_STD
 #undef MS_DEBUGGING_DEEP
 #include <Arduino.h>          // The base Arduino library
 #include <EnableInterrupt.h>  // for external and pin change interrupts
-#include <LoggerBase.h>       // The modular sensors library
+#include <ModularSensors.h>   // Include the main header for ModularSensors
 #if defined USE_PS_EEPROM
 #include "EEPROM.h"
 #endif  // USE_PS_EEPROM

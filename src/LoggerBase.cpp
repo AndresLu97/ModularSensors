@@ -7,7 +7,7 @@
  * @brief Implements the Logger class.
  */
 
-#include "LoggerBase.h"
+#include <ModularSensors.h>   // Include the main header for ModularSensors
 #include "dataPublisherBase.h"
 
 /**
@@ -914,7 +914,7 @@ inline uint16_t freeRamCnt() {
 #define FREE_RAM_SEED 0
 #endif
 #define DF_RAM_LINE 16
-#define MS_DUMP_FREE_RAM 1
+
 #if defined MS_DUMP_FREE_RAM
 inline uint16_t dumpFreeRam(uint16_t maxCount)
 {
