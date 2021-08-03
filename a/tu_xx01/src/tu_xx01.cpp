@@ -1112,147 +1112,8 @@ void userButtonISR() {
 
 
 #if defined MS_TTY_USER_INPUT
-// ==========================================================================
-// Data section for userTuple processing
-#define  USER_INPUT_BUF_SZ 64
-String serialInputBuffer = ""; //Could this be reason #55, Avoid String
-bool  serial_1st_char_bool =true;
+#include "tu_serialCmd.h"
 
-bool   userInputCollection=false;
-#define  USERHELP "\n\
-dyymmdd:hhmm<cr> to set date/time\n\
-d?<cr> to print current date/time\n\
-?<cr> for this help\n"
-
-// ==========================================================================
-// parseTwoDigits
-// Simple helper function
-uint8_t parseTwoDigitsError =0;
-uint16_t parseTwoDigits(const char *digits) {
-    uint16_t  num=0; 
-    if ( !isdigit(digits[0]) || !isdigit(digits[1]) ) {
-        MS_DBG(F("parseTwoDigits error with "),digits[0],digits[1] );
-        parseTwoDigitsError =1;
-    } else {
-        num = (digits[0]-'0')*10 +
-            (digits[1]-'0');
-    }
-    return num;
-}  // parseTwoDigits
-
-
-// ==========================================================================
-// userTupleParse
-// When a user tuple has been detected, parse it,
-// take a appropiate action
-//
-// this could be  https://github.com/Uberi/Arduino-CommandParser  ~ KISS
-//
-void userTupleParse() {
-
-    switch (serialInputBuffer[0]) {
-        case 'd' :
-            // format d?\n OR dyymmdd-hhmm\n
-            if ('?'==serialInputBuffer[1]) {
-                PRINTOUT(F("Local Time "),dataLogger.formatDateTime_ISO8601(dataLogger.getNowEpochTz()));
-            } else {
-                const char *cin = serialInputBuffer.c_str();
-                int ser_len = serialInputBuffer.length();
-                //MS_DBG(F("**sid("),ser_len,F(")="),serialInputBuffer);
-                if (12>ser_len) {
-                    PRINTOUT(F("date invalid, got"),ser_len,F(" expect at least 11 chars :'"),&cin[1],"'");
-                } else {
-                    parseTwoDigitsError =0;
-                    uint16_t year = parseTwoDigits(&cin[1]);
-                    uint8_t month = parseTwoDigits(&cin[3]);
-                    uint8_t day   = parseTwoDigits(&cin[5]);
-                    uint8_t hour  = parseTwoDigits(&cin[8]);
-                    uint8_t minute= parseTwoDigits(&cin[10]);
-                    if (0==parseTwoDigitsError) {
-                        DateTime dt(year,month,day,hour,minute,0,0);
-                        dataLogger.setRTClock(dt.getEpoch()-dataLogger.getTZOffset()*HOURS_TO_SECS);
-                        PRINTOUT(F("Time set to "),dataLogger.formatDateTime_ISO8601(dataLogger.getNowEpochTz()));
-                        //    DateTime (uint16_t year, uint8_t month, uint8_t date,
-                        //uint8_t hour, uint8_t min, uint8_t sec, uint8_t wday);
-                    }
-                }
-           }
-           break;
-        case '<': //Treating as eRPC
-            break;
-        case '?': 
-            PRINTOUT(F(USERHELP));
-            break;            
-        default:
-            PRINTOUT("Input not processed :'",serialInputBuffer,"'");
-            break;
-
-    }
-} //userTupleParse
-
-// ==========================================================================
-// Serial Input Driver
-// serial Input & FUT: eRPC (eRPC needs to enable UART interrupt)
-//
-// Serial buffer max SERIAL_RX_BUFFER_SIZE  64 chars
-//
-// The serial input is very error pront  
-// 
-
-void serialInputCheck() 
-{
-    char incoming_ch;
-    long timer_start_ms, timer_activity_ms,timer_now_ms;
-    timer_start_ms=timer_activity_ms=millis();
-    //20 seconds between key strokes
-#define TIMER_TIMEOUT_NOACTIVITY_MS 20000
-    // 180sec total timer
-#define TIMER_TIMEOUT_LIMIT_MS 180000
-
-
-    PRINTOUT(F("\n\n"), (char*)epc.app.msc.s.logger_id,configDescription);
-    PRINTOUT(MODULAR_SENSORS_VERSION,F("@"), epc.app.msc.s.logging_interval_min,
-        F("min,"),dataLogger.formatDateTime_ISO8601(dataLogger.getNowEpochTz()));
-    PRINTOUT(F(" Enter cmd: ?<CR> for help.(need a key to be typed every "), TIMER_TIMEOUT_NOACTIVITY_MS/1000,F("secs)"));
-    while (userInputCollection ) {
-        if(Serial.available() != 0) {
-            incoming_ch = Serial.read();
-            if (serial_1st_char_bool) {
-                //Do this only first time from reset, keeps heap simple
-                serial_1st_char_bool = false;
-                serialInputBuffer.reserve(SERIAL_RX_BUFFER_SIZE);
-            }
-            timer_activity_ms = millis();
-            dataLogger.watchDogTimer.resetWatchDog();
-
-            // Parse the string on new-line
-            if (incoming_ch == '\n' || incoming_ch == '\r' || incoming_ch == '!') { 
-                //user_selection = true;
-                MS_DBG("\nRead ",serialInputBuffer.length(),F(" chars in'"),serialInputBuffer,F("'"));
-                userTupleParse();
-                serialInputBuffer = "";
-                userInputCollection = false; 
-            } else {
-                // Append the current digit to the string placeholder
-                Serial.write(incoming_ch); // Echo input, for user feedback
-                serialInputBuffer += static_cast<char>(incoming_ch);
-            }
-        }
-        //delay(1); // limit polling ~ the single character input is error prone ??
-
-        timer_now_ms = millis();
-        if (TIMER_TIMEOUT_NOACTIVITY_MS < (timer_now_ms - timer_activity_ms) ) {
-            PRINTOUT(F(" No keyboard activity for"), TIMER_TIMEOUT_NOACTIVITY_MS/1000,F("secs. Returning to normal logging."));
-            break;
-        } 
-        if (TIMER_TIMEOUT_LIMIT_MS < (timer_now_ms - timer_start_ms) ) {
-            PRINTOUT(F(" Took too long, need to complete within "), TIMER_TIMEOUT_LIMIT_MS/1000,F("secs. Returning to normal logging."));
-            break;
-        } 
-
-    } //while
-    dataLogger.watchDogTimer.resetWatchDog();
-}//serialInputCheck
 #else 
 long ch_count_tot=0; 
 uint8_t serialInputCount() 
@@ -1384,7 +1245,7 @@ inline void initFreeRam() {
     }
 }
 #else 
-inline initFreeRam() {return 0;}
+inline void initFreeRam() {return;}
 #endif //MS_DUMP_FREE_RAM
 #else 
 inline void initFreeRam() {}
@@ -1694,7 +1555,9 @@ void setup() {
 //needs testing        dataLogger_do(LOGGER_NEW_READING); 
     }
 #endif // UseModem_Module && !NO_FIRST_SYNC_WITH_NIST
-
+#if defined MS_TTY_USER_INPUT
+    tu2setup();
+#endif //
     MS_DBG(F("\n\nSetup Complete ****"));
 }
 

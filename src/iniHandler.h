@@ -1,7 +1,9 @@
 // ==========================================================================
-// inihUnhandled
-// For any Unhandled sections this is called
+// inihUnhandler.h
+// Utilites for reading from an ini file
 // ==========================================================================
+#ifndef SRC_INIHANDLER_H_
+#define  SRC_INIHANDLER_H_
 #ifdef USE_MS_SD_INI
 #include <errno.h>
 // expect to be in near space
@@ -1211,3 +1213,4 @@ String      decodeResetCause(uint8_t resetCause) {
     return (String)resetReason;
 }
 #endif  // ARDUINO_ARCH_AVR
+#endif  // SRC_INIHANDLER_H_
