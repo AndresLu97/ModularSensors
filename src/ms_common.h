@@ -167,6 +167,9 @@ typedef struct {
 #ifndef MNGI_SEND_OFFSET_MIN_DEF 
 #define MNGI_SEND_OFFSET_MIN_DEF 100
 #endif //MNGI_SEND_OFFSET_MIN_DEF 
+#ifndef MMW_TIMER_POST_MAX_MUM_DEF
+#define MMW_TIMER_POST_MAX_MUM_DEF 100
+#endif //MMW_TIMER_POST_MAX_MUM_DEF 
 typedef struct {
     uint8_t network_type; // 0=apn ,1=wifi network 
     uint8_t apn[MSCN_APN_SZ];           // 32
