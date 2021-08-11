@@ -11,34 +11,21 @@
 
 SerialCommand tu2sc;
 
-void sc_turn_on() {
-    Serial.println("LED on");
-    digitalWrite(greenLED, HIGH);
-}
-void sc_turn_off() {
-    Serial.println("LED off");
-    digitalWrite(greenLED, LOW);
-
-}
-
-void sayHello() {
-  char *arg;
-  arg = tu2sc.next();    // Get the next argument from the SerialCommand object buffer
-  if (arg != NULL) {    // As long as it existed, take it
-    Serial.print("Hello ");
-    Serial.println(arg);
-  }
-  else {
-    Serial.println("Hello, whoever you are");
-  }
-}
-
 #define  USERHELP "\n\
-d,yymmdd:hhmm<cr> to set date/time\n\
-d?<cr> to print current date/time\n\
+LR - list the readings\n\
+L? - list the directory\n\
+D,yymmdd,hhmm<cr> to set date/time\n\
+D?<cr> to print current date/time\n\
 ?<cr> for this help\n"
+
 void tu2Help() {
     PRINTOUT(F(USERHELP));
+}
+void tu2cmdListDir() {
+    Serial.println("Place holder ListDir");
+}
+void tu2cmdListReadings() {
+    Serial.println("Place holder ListReadings");
 }
 
 void tu2Unknown(const char *command) {
@@ -126,16 +113,15 @@ void tu2cmdDate (){
 const static PROGMEM SerialCommand::SerialCommandCallback sc_commandList[SC_COMMAND_NUMBER ] =
 {
     //List in search order, 1st match is used
-    {"OFF",sc_turn_off},
-    {"ON",sc_turn_on},
-    {"d",tu2cmdDate},
-    {"d?",tu2cmdDateNow},
+    {"D",tu2cmdDate},
+    {"D?",tu2cmdDateNow},
+    {"LR",tu2cmdListReadings},
+    {"L?",tu2cmdListDir},
     {"?",tu2Help},
 };
 
 
 void tu2setup() {
-    //tu2sc.addCommand("ON",turn_on);
     tu2sc.setCommandList(sc_commandList,SC_COMMAND_NUMBER);
     tu2sc.setDefaultHandler(tu2Unknown);
 }
