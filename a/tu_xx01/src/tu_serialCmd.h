@@ -21,13 +21,13 @@ D?<cr> to print current date/time\n\
 void tu2Help() {
     PRINTOUT(F(USERHELP));
 }
+
 void tu2cmdListDir() {
-    Serial.println("Place holder ListDir");
+    dataLogger.SD1_ListDir();
 }
 void tu2cmdListReadings() {
-    Serial.println("Place holder ListReadings");
+    dataLogger.SD1_ListReadings();
 }
-
 void tu2Unknown(const char *command) {
     PRINTOUT(F("Unknown input <tbd>"));
     tu2Help();

@@ -2089,4 +2089,5 @@ void Logger::logDataAndPublish(void) {
 }
 
 #include "LoggerBaseExtCpp.h"
+#include "LoggerBaseSDcpp.h"
 // End of LoggerBase.cpp

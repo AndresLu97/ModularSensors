@@ -1106,15 +1106,12 @@ void userButtonISR() {
                F("user input."));
     }
 } // setupUserButton
+#include "tu_serialCmd.h"
 #else 
 #define setupUserButton()
-#endif //MS_TTY_USER_INPUT
 
+#if defined MS_TTY_SERIAL_COUNT
 
-#if defined MS_TTY_USER_INPUT
-#include "tu_serialCmd.h"
-
-#else 
 long ch_count_tot=0; 
 uint8_t serialInputCount() 
 {
@@ -1131,8 +1128,8 @@ uint8_t serialInputCount()
 
     return ch_count_now;
 }
-#endif // MS_TTY_USER_INPUT
-
+#endif // MS_TTY_SERIAL_COUNT
+#endif //MS_TTY_USER_INPUT
 // ==========================================================================
 // Poll management sensors- eg FuelGauges status  
 // 
@@ -1579,6 +1576,7 @@ void loop() {
         userButton1Act = false;
     } 
     #else 
+    #if defined MS_TTY_INPUT_COUNT
     uint8_t ch_count_now;
     ch_count_now=  serialInputCount();
     if (ch_count_now) {
@@ -1586,8 +1584,8 @@ void loop() {
     } else {
         PRINTOUT(F("Char Cnt tot since reset"),ch_count_tot);
     }
-
-    #endif // MS_TTY_USER_INPUT
+    #endif //MS_TTY_USER_INPUT
+    #endif // MS_TTY_INPUT_COUNT
     #if defined PRINT_EXTADC_BATV_VAR    
     // Signal when battery is next read, to give user information
     userPrintExtBatV_avlb=true;
