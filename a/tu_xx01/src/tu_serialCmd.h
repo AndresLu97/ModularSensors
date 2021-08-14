@@ -1,5 +1,6 @@
 // ==========================================================================
-// tu2cmd.h
+// tu_serialCmd.h
+// 
 // Utilites for processing user input.
 // This is initailly from Serial Uart, 
 // future could be from other serial sources, including BT
