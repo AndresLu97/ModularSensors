@@ -1572,7 +1572,7 @@ void loop() {
         if (userButton1Act) {
             greenflash();
         }
-        serialInputCheck();
+        tu2SerialInputPoll();
         userButton1Act = false;
     } 
     #else 
