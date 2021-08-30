@@ -1,8 +1,17 @@
 // ==========================================================================
-// tu2cmd.h
+// tu_serialCmd.h
+// 
 // Utilites for processing user input.
 // This is initailly from Serial Uart, 
 // future could be from other serial sources, including BT
+
+// This file has its commands defined per specific application requirements.
+// Some functions, like listing mircoSD and Date function are likely to be commmon.
+// It is included in the top level file 
+// i.e. tu_xx01.cpp 
+// and two functions called
+//     tu2setup() 
+//     tu2SerialInputPoll()
 // ==========================================================================
 #ifndef SRC_TU_SERIALCMD_H_
 #define SRC_TU_SERIALCMD_H_
@@ -11,36 +20,23 @@
 
 SerialCommand tu2sc;
 
-void sc_turn_on() {
-    Serial.println("LED on");
-    digitalWrite(greenLED, HIGH);
-}
-void sc_turn_off() {
-    Serial.println("LED off");
-    digitalWrite(greenLED, LOW);
-
-}
-
-void sayHello() {
-  char *arg;
-  arg = tu2sc.next();    // Get the next argument from the SerialCommand object buffer
-  if (arg != NULL) {    // As long as it existed, take it
-    Serial.print("Hello ");
-    Serial.println(arg);
-  }
-  else {
-    Serial.println("Hello, whoever you are");
-  }
-}
-
 #define  USERHELP "\n\
-d,yymmdd:hhmm<cr> to set date/time\n\
-d?<cr> to print current date/time\n\
+LR - list the readings\n\
+L? - list the directory\n\
+D,yymmdd,hhmm<cr> to set date/time\n\
+D?<cr> to print current date/time\n\
 ?<cr> for this help\n"
+
 void tu2Help() {
     PRINTOUT(F(USERHELP));
 }
 
+void tu2cmdListDir() {
+    dataLogger.SD1_ListDir();
+}
+void tu2cmdListReadings() {
+    dataLogger.SD1_ListReadings();
+}
 void tu2Unknown(const char *command) {
     PRINTOUT(F("Unknown input <tbd>"));
     tu2Help();
@@ -92,71 +88,31 @@ void tu2cmdDate (){
             //uint8_t hour, uint8_t min, uint8_t sec, uint8_t wday);
         } //else err
     }
-
-    #if 0
-    // format d?\n OR dyymmdd-hhmm\n
-    if ('?'==serialInputBuffer[1]) {
-        PRINTOUT(F("Local Time "),dataLogger.formatDateTime_ISO8601(dataLogger.getNowEpochTz()));
-    } else {
-        const char *cin = serialInputBuffer.c_str();
-        int ser_len = serialInputBuffer.length();
-        //MS_DBG(F("**sid("),ser_len,F(")="),serialInputBuffer);
-        if (12>ser_len) {
-            PRINTOUT(F("date invalid, got"),ser_len,F(" expect at least 11 chars :'"),&cin[1],"'");
-        } else {
-            parseTwoDigitsError =0;
-            uint16_t year = parseTwoDigits(&cin[1]);
-            uint8_t month = parseTwoDigits(&cin[3]);
-            uint8_t day   = parseTwoDigits(&cin[5]);
-            uint8_t hour  = parseTwoDigits(&cin[8]);
-            uint8_t minute= parseTwoDigits(&cin[10]);
-            if (0==parseTwoDigitsError) {
-                DateTime dt(year,month,day,hour,minute,0,0);
-                dataLogger.setRTClock(dt.getEpoch()-dataLogger.getTZOffset()*HOURS_TO_SECS);
-                PRINTOUT(F("Time set to "),dataLogger.formatDateTime_ISO8601(dataLogger.getNowEpochTz()));
-                //    DateTime (uint16_t year, uint8_t month, uint8_t date,
-                //uint8_t hour, uint8_t min, uint8_t sec, uint8_t wday);
-            }
-        }
-    }
-    #endif //
 }
 
 #define SC_COMMAND_NUMBER 5
 const static PROGMEM SerialCommand::SerialCommandCallback sc_commandList[SC_COMMAND_NUMBER ] =
 {
     //List in search order, 1st match is used
-    {"OFF",sc_turn_off},
-    {"ON",sc_turn_on},
-    {"d",tu2cmdDate},
-    {"d?",tu2cmdDateNow},
+    {"D",tu2cmdDate},
+    {"D?",tu2cmdDateNow},
+    {"LR",tu2cmdListReadings},
+    {"L?",tu2cmdListDir},
     {"?",tu2Help},
 };
 
 
 void tu2setup() {
-    //tu2sc.addCommand("ON",turn_on);
     tu2sc.setCommandList(sc_commandList,SC_COMMAND_NUMBER);
     tu2sc.setDefaultHandler(tu2Unknown);
 }
 
 
-//tu_cli tucli;
+
 // ==========================================================================
-// Data section for userTuple processing
-//#define  USER_INPUT_BUF_SZ 64
-//String serialInputBuffer = ""; //Could this be reason #55, Avoid String
-//bool  serial_1st_char_bool =true;
 
 bool   userInputCollection=false;
 
-// ==========================================================================
-// userTupleParse
-// When a user tuple has been detected, parse it,
-// take a appropiate action
-//
-// this could be  https://github.com/Uberi/Arduino-CommandParser  ~ KISS
-//
 
 // ==========================================================================
 // Serial Input Driver
@@ -167,7 +123,7 @@ bool   userInputCollection=false;
 // The serial input is very error pront  
 // 
 
-void serialInputCheck() 
+void tu2SerialInputPoll() 
 {
     //char incoming_ch;
     long timer_start_ms, timer_activity_ms,timer_now_ms;
@@ -185,10 +141,11 @@ void serialInputCheck()
         if(Serial.available() != 0) {
             dataLogger.watchDogTimer.resetWatchDog();
             timer_activity_ms = millis();
-            tu2sc.readSerial();
+            tu2sc.readSerial(); // When a user tuple has been detected, parse it,
         }
         //delay(1); // limit polling ~ the single character input is error prone ??
 
+        //If it takes too long, break out of collecting input
         timer_now_ms = millis();
         if (TIMER_TIMEOUT_NOACTIVITY_MS < (timer_now_ms - timer_activity_ms) ) {
             PRINTOUT(F(" No keyboard activity for"), TIMER_TIMEOUT_NOACTIVITY_MS/1000,F("secs. Returning to normal logging."));
@@ -205,4 +162,5 @@ void serialInputCheck()
 
     dataLogger.watchDogTimer.resetWatchDog();
 }//serialInputCheck
+
 #endif  //SRC_TU_SERIALCMD_H_
