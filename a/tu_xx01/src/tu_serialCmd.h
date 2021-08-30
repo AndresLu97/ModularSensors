@@ -5,13 +5,13 @@
 // This is initailly from Serial Uart, 
 // future could be from other serial sources, including BT
 
-// This file is has its commands defined per specific application requirements.
-// Some functions like listing mircoSD and Data are likely to be commen.
+// This file has its commands defined per specific application requirements.
+// Some functions, like listing mircoSD and Date function are likely to be commmon.
 // It is included in the top level file 
 // i.e. tu_xx01.cpp 
 // and two functions called
 //     tu2setup() 
-//     tu2SerialInputPoll
+//     tu2SerialInputPoll()
 // ==========================================================================
 #ifndef SRC_TU_SERIALCMD_H_
 #define SRC_TU_SERIALCMD_H_

@@ -539,15 +539,6 @@ const int8_t OneWireBus = 6;  // Pin attached to the OneWire Bus (-1 if unconnec
 MaximDS18 ds18(OneWirePower, OneWireBus);
 #endif  // 0
 
-
-#if defined USE_STC3100_DD
-#include "STC3100dd.h"  //github.com/neilh10/STC3100arduino.git
-STC3100dd batteryFuelGauge(STC3100_REG_MODE_ADCRES_12BITS,STC3100_R_SERIES_mOhms);
-#define stc3100_bfg batteryFuelGauge
-
-bool       bfgPresent = false;
-#endif  // USE_STC3100_DD 
-
 #if defined MAYFLY_BAT_STC3100
 #include <sensors/STSTC3100_Sensor.h> 
 
@@ -556,8 +547,8 @@ bool       bfgPresent = false;
 STSTC3100_Sensor stc3100_phy(STC3100_NUM_MEASUREMENTS);
 
 //Its on a wingboard and may not be plugged in
-bool       bfgPresent = false;
-#define stc3100_bfg stc3100_phy.stc3100_device
+bool       batteryFuelGauge_present = false;
+
 //#define PRINT_STC3100_SNSR_VAR 1
 #if defined PRINT_STC3100_SNSR_VAR 
 bool userPrintStc3100BatV_avlb=false;
@@ -570,7 +561,7 @@ Variable* kBatteryVoltage_V = new STSTC3100_Volt(&stc3100_phy,"nu");
 
 float wLionBatStc3100_worker(void) {  // get the Battery Reading
     // Get reading - Assumes updated before calling
-    float flLionBatStc3100_V = stc3100_bfg.v.voltage_V;
+    float flLionBatStc3100_V = stc3100_phy.stc3100_device.v.voltage_V;
 
     // MS_DBG(F("wLionBatStc3100_worker"), flLionBatStc3100_V);
 #if defined MS_TU_XX_DEBUG
@@ -1134,9 +1125,9 @@ uint8_t serialInputCount()
 // Poll management sensors- eg FuelGauges status  
 // 
 void  managementSensorsPoll() {
-#if defined USE_STC3100_DD || defined MAYFLY_BAT_STC3100
-    if (bfgPresent) {
-        stc3100_bfg.readValues();
+#if defined MAYFLY_BAT_STC3100
+    if (batteryFuelGauge_present) {
+        stc3100_phy.stc3100_device.readValues();
         Serial.print("BtMonStc31, ");
         //Create a time traceability header 
         String csvString = "";
@@ -1148,27 +1139,27 @@ void  managementSensorsPoll() {
 
         //Output readings
         Serial.print(F(" V=,"));
-        Serial.print(stc3100_bfg.v.voltage_V, 4);
+        Serial.print(stc3100_phy.stc3100_device.v.voltage_V, 3);
         Serial.print(F(", mA=,"));
-        Serial.print(stc3100_bfg.v.current_mA, 1);
-        Serial.print(F(", mAh=,"));
-        Serial.print(stc3100_bfg.v.charge_mAhr, 3);
-        Serial.print(F(", "));
-        Serial.print(stc3100_bfg._energyUsed_mAhr, 3);
+        Serial.print(stc3100_phy.stc3100_device.v.current_mA, 1);
+        Serial.print(F(", C mAh=,"));
+        Serial.print(stc3100_phy.stc3100_device.v.charge_mAhr, 3);
+        Serial.print(F(", EU mAh="));
+        Serial.print(stc3100_phy.stc3100_device._energyUsed_mAhr, 3);        
+        Serial.print(F(", EA mAh="));
+        Serial.print(stc3100_phy.stc3100_device.getEnergyAvlbl_mAhr(), 3);
         Serial.print(F(",0x"));
-        Serial.print((uint16_t)stc3100_bfg._batCharge1_raw,HEX);
-        Serial.print(F(","));
-        Serial.print(stc3100_bfg.getEnergyAvlbl_mAhr(), 3);
+        Serial.print((uint16_t)stc3100_phy.stc3100_device._batCharge1_raw,HEX);
         Serial.print(", CntsAdc=,");
-        Serial.println(stc3100_bfg.v.counter);
+        Serial.println(stc3100_phy.stc3100_device.v.counter);
 
         // Serial.print(" & IC Temp(C), ");
         // Serial.println(lc.getCellTemperature(), 1);
 
          //Ensure no matter how many readings are averaged, some values are only read once.
-        stc3100_bfg.setHandshake1();
+        stc3100_phy.stc3100_device.setHandshake1();
     }
-#endif  // USE_STC3100_DD
+#endif  // MAYFLY_BAT_STC3100
 } //managementSensorsPoll
 
 
@@ -1301,21 +1292,21 @@ void setup() {
         MS_DBG(F("STC3100 Not detected!"));
     } else {
         uint8_t dm_lp=0;
-        bfgPresent = true;
+        batteryFuelGauge_present = true;
         Serial.print("STC3100 detected sn ");
         for (int snlp=1;snlp<(STC3100_ID_LEN-1);snlp++) {
-            Serial.print(stc3100_bfg.serial_number[snlp],HEX);
+            Serial.print(stc3100_phy.stc3100_device.serial_number[snlp],HEX);
         }
-        //managementSensorsPoll(); stc3100_bfg.v.voltage_V
+        //managementSensorsPoll(); stc3100_phy.stc3100_device.v.voltage_V
         #define STCDM_POLL 20
         #define STCDM_MIN_V 2.5
         for ( dm_lp=0;dm_lp<STCDM_POLL;dm_lp++) {
             delay(250); //Takes 8192 clock cycles for first V measurement
             stc3100_phy.stc3100_device.dmBegin(); //read registers
-            if (STCDM_MIN_V  < stc3100_bfg.v.voltage_V) break;
+            if (STCDM_MIN_V  < stc3100_phy.stc3100_device.v.voltage_V) break;
         }
 
-        PRINTOUT(F("  BatV/lp/cntr"), stc3100_bfg.v.voltage_V,dm_lp,stc3100_bfg.v.counter);
+        PRINTOUT(F("  BatV/lp/cntr"), stc3100_phy.stc3100_device.v.voltage_V,dm_lp,stc3100_phy.stc3100_device.v.counter);
     }
 #endif //MAYFLY_BAT_STC3100
     // A vital check on power availability
@@ -1484,37 +1475,14 @@ void setup() {
 // all sensor names correct
 // Writing to the SD card can be power intensive, so if we're skipping
 // the sensor setup we'll skip this too.
-#if defined USE_STC3100_DD
-    /* */
-    stc3100_bfg.begin(); //does this interfere with other Wire.begin()
-    if (!stc3100_bfg.start()) {
-        Serial.println(F("Couldnt find STC3100\nMake sure a "
-                         "battery is plugged in!"));
-    } else {
-        bfgPresent = true;
-        Serial.print("STC3100 sn ");
-        for (int snlp=1;snlp<(STC3100_ID_LEN-1);snlp++) {
-            Serial.print(stc3100_bfg.serial_number[snlp],HEX);
-        }
-        Serial.print(" Type ");
-        Serial.println(stc3100_bfg.serial_number[0],HEX);
-        //FUT  How to set stc3100_bfg.setPackSize ?? (_500MAH); 
-        #if defined MS_TU_XX_DEBUG
-        for (uint8_t cnt=0;cnt <5;cnt++)
-        #endif 
-        {
-            delay(125);
-            managementSensorsPoll();
-        }
-    }
-#endif  // defined USE_STC3100_DD
+
 #if defined MAYFLY_BAT_STC3100
     //Setsup - Sensor not initialized yet. Reads unique serial number
     //stc3100_phy.stc3100_device.begin(); assumes done
     if(!stc3100_phy.stc3100_device.start()){
         MS_DBG(F("STC3100 Not detected!"));
     } else {
-        bfgPresent = true;
+        batteryFuelGauge_present = true;
     }
     String sn(stc3100_phy.stc3100_device.getSn());
     PRINTOUT(F("STC3100 sn:"),sn);
