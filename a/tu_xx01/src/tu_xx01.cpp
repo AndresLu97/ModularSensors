@@ -65,7 +65,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 //    Data Logger Settings
 // ==========================================================================
 // The name of this file
-extern const String build_ref = __FILE__ " " __DATE__ " " __TIME__ " ";
+extern const String build_ref = "a\\" __FILE__ " " __DATE__ " " __TIME__ " ";
 #ifdef PIO_SRC_REV
 const char git_branch[] = PIO_SRC_REV;
 #else
