@@ -1,7 +1,9 @@
 // ==========================================================================
-// inihUnhandled
-// For any Unhandled sections this is called
+// inihUnhandler.h
+// Utilites for reading from an ini file
 // ==========================================================================
+#ifndef SRC_INIHANDLER_H_
+#define  SRC_INIHANDLER_H_
 #ifdef USE_MS_SD_INI
 #include <errno.h>
 // expect to be in near space
@@ -118,6 +120,8 @@ void             ramAvailable() {
 #endif  // ARDUINO_AVR_ENVIRODIY_MAYFLY
 void       ledflash(uint8_t numFlash = 4, unsigned long onTime_ms = 75,
                     unsigned long offTime_ms = 150);
+
+#if defined USE_PS_EEPROM && defined ARDUINO_AVR_ENVIRODIY_MAYFLY
 void localAppStorageInit();
 
 // Wrte the epc.app to EEPROM
@@ -138,6 +142,7 @@ void localEepromAppWr(const char *srcdbg)
     );
     SerialStd.println(F("EEPROM Write finished"));
 }
+#endif // USE_PS_EEPROM 
 
 #if defined USE_PUB_MMW || defined USE_PUB_UBIDOTS
 
@@ -253,6 +258,7 @@ static void populateUuidMatchIni(const char* name, const char* value,
 }
 #endif // USE_PUB_MMW || USE_PUB_UBIDOTS
 
+#if defined USE_PS_EEPROM && defined ARDUINO_AVR_ENVIRODIY_MAYFLY
 /* Parse the pesistent configuration data.
  * The data has been read from EEPROM into a ram cache, 
  * and then if exists in the .ini file, overwritten in the ram
@@ -283,10 +289,12 @@ static void epcParser() {
     dataLogger.setLoggingInterval(epc_logging_interval_min);
     PRINTOUT(F("COMMON Logginterval: "), epc_logging_interval_min);
 
+#if defined MAYFLY_BAT_CHOICE
     bms.setBatteryType((bm_battery_type_rating_t)epc_battery_type);
     PRINTOUT(F("COMMON Battery Type: "), epc_battery_type);
 
     PRINTOUT(F("COMMON Battery mAhr: "), epc_battery_mAhr);
+#endif // MAYFLY_BAT_CHOICE
 
     Logger::setLoggerTimeZone(epc.app.msc.s.time_zone);
 
@@ -377,6 +385,7 @@ static bool chkLen(char *destStr, const char *value,int size) {
     }
     return ret_val;
 }
+#endif // USE_PS_EEPROM
 
 static int inihUnhandledFn(const char* section, const char* name,
                            const char* value) {
@@ -680,6 +689,7 @@ static int inihUnhandledFn(const char* section, const char* name,
             epc_battery_mAhr=batteryCap; //0-65,536 = batteryCap;
             PRINTOUT(F(" Set BATTERY_mAhr "), batteryCap);
 #endif  // USE_PS_EEPROM
+#if defined MAYFLY_BAT_CHOICE
         } else if (strcmp_P(name, BATTERY_TYPE_pm) == 0) {
             // convert  str to num with error checking
             long batteryType = strtoul(value, &endptr, 10);
@@ -708,6 +718,7 @@ static int inihUnhandledFn(const char* section, const char* name,
             epc_battery_type = batLiionType;
 #endif  // USE_PS_EEPROM
             MS_DBG(F("COMMON Battery Type: "), batLiionType);
+#endif //MAYFLY_BAT_CHOICE
         } else if (strcmp_P(name, TIME_ZONE_pm) == 0) {
             // convert  str to num with error checking
             long time_zone_local = strtol(value, &endptr, 10);
@@ -848,6 +859,7 @@ static int inihUnhandledFn(const char* section, const char* name,
                     F("NETWORK Set POST_MAX_NUM error; range["), 
                     POST_RANGE_MIN_NUM,POST_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
                     postMax_num_local=MMW_TIMER_POST_MAX_MUM_DEF;
+#warning should MMW_TIMER_POST_MAX_MUM_DEF be MNGI_TIMER_POST_MAX_MUM_DEF 
             }
             //postMax_num = (uint8_t)postMax_num_local;
             epc.app.msn.s.postMax_num = postMax_num_local;
@@ -905,6 +917,7 @@ const char SD_INIT_ID_pm[] EDIY_PROGMEM = "SD_INIT_ID";
             SerialStd.print(F("SD BOOT ini:"));
             SerialStd.println((char *)epc.hw_boot.sd_boot_ini);
 #endif
+#if defined USE_PS_EEPROM && defined ARDUINO_AVR_ENVIRODIY_MAYFLY
         } else if (strcmp_P(name, EEPROM_WRITE_pm) == 0) {
             if (strcmp_P(value, YES_pm) == 0) {
                 SerialStd.println(F("EEPROM Write started:"));
@@ -935,6 +948,7 @@ const char SD_INIT_ID_pm[] EDIY_PROGMEM = "SD_INIT_ID";
                 SerialStd.println("'");
             }
             // SerialStd.println(mcuBoardVersion);    
+#endif  //USE_PS_EEPROM
         } else {
             SerialStd.print(F("BOOT tbd "));
             SerialStd.print(name);
@@ -1211,3 +1225,4 @@ String      decodeResetCause(uint8_t resetCause) {
     return (String)resetReason;
 }
 #endif  // ARDUINO_ARCH_AVR
+#endif  // SRC_INIHANDLER_H_

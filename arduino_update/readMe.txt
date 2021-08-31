@@ -9,7 +9,7 @@ Copy in files variant.cpp & variant.h from
 ModularSensors\arduino_update\arduino-samd-adafruit\variants\feather_m4\
 
 
-For Arduino Pin extensions 
+For Arduino Pin extensions ~ not upadated.
 
 C:\Users\<user>\.platformio\packages\framework-arduino-samd-adafruit\cores\adafruit
 

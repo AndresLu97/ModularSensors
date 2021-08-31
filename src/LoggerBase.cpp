@@ -7,7 +7,7 @@
  * @brief Implements the Logger class.
  */
 
-#include "LoggerBase.h"
+#include <ModularSensors.h>   // Include the main header for ModularSensors
 #include "dataPublisherBase.h"
 
 /**
@@ -914,7 +914,7 @@ inline uint16_t freeRamCnt() {
 #define FREE_RAM_SEED 0
 #endif
 #define DF_RAM_LINE 16
-#define MS_DUMP_FREE_RAM 1
+
 #if defined MS_DUMP_FREE_RAM
 inline uint16_t dumpFreeRam(uint16_t maxCount)
 {
@@ -997,6 +997,7 @@ inline uint16_t dumpFreeRam(uint16_t maxCount)
 inline uint16_t dumpFreeRam(uint16_t maxCount) {return 0;}
 #endif //MS_DUMP_FREE_RAM
 #elif defined(ARDUINO_ARCH_SAMD)
+#define freeRamLb() "nu"
 extern "C" char* sbrk(int i);
 
 int16_t freeRamCalcLb() {
@@ -1005,7 +1006,7 @@ int16_t freeRamCalcLb() {
 }
 inline uint16_t freeRamCnt() {return 0;} 
 inline uint16_t dumpFreeRam(uint16_t maxCount) {return 0;}
-#endif
+#endif // __AVR__
 // Puts the system to sleep to conserve battery life.
 // This DOES NOT sleep or wake the sensors!!
 void        Logger::systemSleep(uint8_t sleep_min) {
@@ -1883,9 +1884,9 @@ void Logger::begin() {
                    rNow_dt.date(), " ", rNow_dt.hour(), ":", rNow_dt.minute(),
                    ":", rNow_dt.second(), " or epoch ", rnow_usecs);
             MS_DBG("Good if between ", COMPILE_TIME_UTC, "<", rnow_usecs, "<",
-                   TIME_FUT_UPPER_UT0);
+                   TIME_FUT_UPPER_UTC);
             if ((rnow_usecs < COMPILE_TIME_UTC) ||
-                (rnow_usecs > TIME_FUT_UPPER_UT0)) {
+                (rnow_usecs > TIME_FUT_UPPER_UTC)) {
                 rtcExtPhy.adjust(ccTimeUTC);
                 MS_DBG("ExtRTC UTC set to compile time UTC ", COMPILE_TIME_UTC,
                        " which is Tz ", __DATE__, " ", __TIME__);
@@ -2088,4 +2089,5 @@ void Logger::logDataAndPublish(void) {
 }
 
 #include "LoggerBaseExtCpp.h"
+#include "LoggerBaseSDcpp.h"
 // End of LoggerBase.cpp

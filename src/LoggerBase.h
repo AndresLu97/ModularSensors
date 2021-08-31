@@ -1195,6 +1195,7 @@ class Logger {
 
  public:
 #include "LoggerBaseHextClass.h"
+#include "LoggerBaseSDh.h"
 };
 
 #endif  // SRC_LOGGERBASE_H_

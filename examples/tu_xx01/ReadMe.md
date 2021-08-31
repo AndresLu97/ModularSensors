@@ -1,7 +1,7 @@
 # Geographical Customizations seperate file, to log data to EnviroDIY/Monitor My Watershed
 
 These can be built with 
-.\doMe.ps1  <release_num>   eg .\doMe.ps1 0.28.5   .hex are put in ../../../releases
+.\doMe.ps1  <release_num>   eg .\doMe.ps1 0.30.0  .hex are put in ../../../releases
 
 This sketch uses 
 a) ms_cfg.ini where  all the MMW UUID keys are added. This enables scaling multiple Mayflys with same software.  

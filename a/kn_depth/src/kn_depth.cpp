@@ -56,7 +56,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #ifdef ARDUINO_AVR_ENVIRODIY_MAYFLY
 #include <EnableInterrupt.h>  // for external and pin change interrupts
 #endif
-#include <LoggerBase.h>  // The modular sensors library
+#include <ModularSensors.h>   // was LoggerBase
 #include <Time.h>
 #include <errno.h>
 #include "ms_common.h"
@@ -1717,10 +1717,13 @@ ZebraTechDOpto dopto(*DOptoDI12address, SDI12Power, SDI12Data);
 //    Electrical Conductivity using the processors analog pins
 // ==========================================================================
 #ifdef AnalogProcEC_ACT
-#include <sensors/analogElecConductivity.h>
+/** Start [AnalogElecConductivity] */
+#include <sensors/AnalogElecConductivityM.h>
 const int8_t           ECpwrPin   = ECpwrPin_DEF;
 const int8_t           ECdataPin1 = ECdataPin1_DEF;
-analogElecConductivity EC_procPhy(ECpwrPin, ECdataPin1);
+#define EC_RELATIVE_OHMS 100000
+AnalogElecConductivityM analogEC_phy(ECpwrPin, ECdataPin1, EC_RELATIVE_OHMS);
+/** End [AnalogElecConductivity] */
 #endif  // AnalogProcEC_ACT
 
 // ==========================================================================
@@ -1760,7 +1763,7 @@ Variable* variableList[] = {
     new ProcessorStats_Battery(&mcuBoard, ProcessorStats_Batt_UUID),
 #endif
 #if defined AnalogProcEC_ACT
-    new analogElecConductivity_EC(&EC_procPhy, EC1_UUID),
+    new AnalogElecConductivityM_EC(&analogEC_phy, EC1_UUID),
 #endif  // AnalogProcEC_ACT
 #if defined(ProcVolt_ACT) && defined(B031_AEM_EXTENSIONS)
     // new processorAdc_Volt(&procVolt0, ProcVolt_Volt0_UUID),
@@ -2152,8 +2155,10 @@ float getBatteryVoltage() {
 void setup() {
   uint8_t  resetCause      = REG_RSTC_RCAUSE;    // Reads from hw
   uint8_t  resetBackupExit = REG_RSTC_BKUPEXIT;  // Reads from hw
+  #if defined MAYFLY_BAT_CHOICE
   bool     LiBattPower_Unseable;
   uint16_t lp_wait = 1;
+  #endif // MAYFLY_BAT_CHOICE
 
 // Wait for USB connection to be established by PC
 // NOTE:  Only use this when debugging - if not connected to a PC, this
@@ -2228,6 +2233,7 @@ void setup() {
   neoPixelPhy.begin();
   UiStatus(0);
 
+#if defined MAYFLY_BAT_CHOICE
   // A vital check on power availability
   do {
     LiBattPower_Unseable =
@@ -2257,6 +2263,8 @@ void setup() {
   } while (LiBattPower_Unseable);
   SerialStd.print(F("Good BatV="));
   SerialStd.println(mcuBoard.getBatteryVm1(false));
+  #endif // MAYFLY_BAT_CHOICE
+
   /////// Measured LiIon voltage is good enough to start up
   // UiStatus(1);
 
@@ -2330,8 +2338,9 @@ void setup() {
 #endif  // 1
   // List PowerManagementSystem LiIon Bat thresholds
 
+#if defined MAYFLY_BAT_CHOICE
   mcuBoard.printBatteryThresholds();
-
+#endif // MAYFLY_BAT_CHOICE
 #if 0
     uint8_t psilp,psolp;
     for (psolp=0; psolp<PSLR_NUM;psolp++) {
@@ -2427,9 +2436,14 @@ void setup() {
 
 #endif  // USE_RTCLIB
 #if defined UseModem_Module
+#if defined USE_PUB_MMW
   EnviroDIYPOST.begin(dataLogger, &modemPhy.gsmClient,
-                      ps_ram.app.provider.s.registration_token,
-                      ps_ram.app.provider.s.sampling_feature);
+                      ps_ram.app.provider.s.ed.registration_token,
+                      ps_ram.app.provider.s.ed.sampling_feature);
+  EnviroDIYPOST.setQuedState(true);
+  EnviroDIYPOST.setTimerPostTimeout_mS(ps_ram.app.provider.s.ed.timerPostTout_ms);
+  EnviroDIYPOST.setTimerPostPacing_mS(ps_ram.app.provider.s.ed.timerPostPace_ms);
+#endif // USE_PUB_MMW
 #endif  // UseModem_Module
 #if defined loggingMultiplier_MAX_CDEF
   dataLogFast.begin();
@@ -2498,15 +2512,17 @@ void processSensors() {
     // Flag to notify that we're in already awake and logging a point
     // Logger::isLoggingNow = true;
 
+#if defined MAYFLY_BAT_CHOICE
     if (PS_LBATT_UNUSEABLE_STATUS ==
         mcuBoard.isBatteryStatusAbove(true, PS_PWR_USEABLE_REQ)) {
       PRINTOUT(F("---NewReading CANCELLED--Lbatt_V="),
                mcuBoard.getBatteryVm1(false));
       return;
     }
+    MS_DBG(F("Lbatt_V="), mcuBoard.getBatteryVm1(false));
+#endif // MAYFLY_BAT_CHOICE
     // Print a line to show new reading
     PRINTOUT(F("---NewReading--Complete Sensor Update"));
-    MS_DBG(F("Lbatt_V="), mcuBoard.getBatteryVm1(false));
 // PRINTOUT(F("----------------------------\n"));
 #if !defined(CHECK_SLEEP_POWER)
     // Turn on the LED to show we're taking a reading
@@ -2584,11 +2600,14 @@ void processSensors() {
       // Turn on the modem to let it start searching for the network
 
       // if Modem  is Cellular then PS_PWR_HEAVY_REQ
+#if defined MAYFLY_BAT_CHOICE
       if (PS_LBATT_UNUSEABLE_STATUS ==
           mcuBoard.isBatteryStatusAbove(false, PS_PWR_MEDIUM_REQ)) {
         PRINTOUT(F("---NewCloud Update CANCELLED--Lbatt_V="),
                  mcuBoard.getBatteryVm1(false));
-      } else {
+      } else 
+#endif // MAYFLY_BAT_CHOICE
+      {
         // if (dataLogger._logModem != NULL)
         {
 #if defined UseModem_Module

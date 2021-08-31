@@ -591,12 +591,15 @@ bool Logger::parseIniSd(const char* ini_filename, ini_handler_atl485 unhandledFn
     // skip everything else if there's no SD card, otherwise it might hang
     if (!initializeSDCard()) return false;
 
+    #if defined(__AVR__)
+    //Mayfly has internal EEPROM that can be reformatted
     //const char ini_ext='0';
     parseAndRename('0', ini_filename, unhandledFnReq);
     if (parseAndRename('1', ini_filename, unhandledFnReq)) {
         /// Good bye world, reset  
         forceSysReset(0,4567);
     }
+    #endif // _AVR__
     if (sd1_card_fatfs.exists(ini_filename)) {
         parseIniFile(ini_filename, unhandledFnReq);
     } else {
@@ -629,6 +632,7 @@ bool Logger::parseIniFile(const char * ini_filename, ini_handler_atl485 unhandle
     return retStatus;
 }//parseIniFile
 
+#if defined(__AVR__)
 bool Logger::parseAndRename(const char ini_ext, const char* ini_filename, ini_handler_atl485 unhandledFnReq) {
     bool retStatus=true; //Was action completed
 #define FN_EXT_LEN_DEF strlen(ini_filename)+3
@@ -666,6 +670,7 @@ bool Logger::parseAndRename(const char ini_ext, const char* ini_filename, ini_ha
     }
     return retStatus;
 } //parseAndRename
+#endif // __AVR__
 
 void Logger::forceSysReset(uint8_t source, uint16_t simpleMagicNumber) {
     
@@ -913,6 +918,7 @@ void Logger::logDataAndPubReliably(uint8_t cia_val_override) {
     systemSleep();
 }
 
+#if defined(__AVR__)
 //Verify EveryMinute on the RTC DS3231M
 void Logger::setExtRtcSleep() {
     uint8_t isRtcRegBad;
@@ -935,6 +941,7 @@ void Logger::setExtRtcSleep() {
     rtc.enableInterrupts(EveryMinute);
     #endif 
 }
+#endif // __AVR__
 
 void Logger::publishDataQuedToRemotes(bool internetPresent) {
     // Assumes that there is an internet connection
