@@ -286,6 +286,13 @@ public:
      */
     String getSensorDetails(void) ;
 
+#if  !defined SDI12SENSORS_VALUE_FLOAT_DEFAULT
+#define SDI12SENSORS_VALUE_FLOAT_DEFAULT -9999
+#endif //SDI12SENSORS_VALUE_FLOAT_DEFAULT 
+//#if  !defined MS_SDI12_DEPTH_INT_DEFAULT
+//#define MS_SDI12_DEPTH_INT_DEFAULT -9
+//#endif //MS_SDI12_DEPTH_INT_DEFAULT
+
 };
 
 #endif  // SRC_SENSORS_SDI12SENSORS_H_

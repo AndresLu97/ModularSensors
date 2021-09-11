@@ -71,8 +71,8 @@ bool SDI12Sensors::setup(void) {
     // by the SDI-12 protocol for a sensor response.
     // May want to bump it up even further here.
     _SDI12Internal.setTimeout(150);
-    // Force the timeout value to be -9999 (This should be library default.)
-    _SDI12Internal.setTimeoutValue(-9999);
+    // Force the timeout value to be SDI12SENSORS_VALUE_FLOAT_DEFAULT (This should be library default.)
+    _SDI12Internal.setTimeoutValue(SDI12SENSORS_VALUE_FLOAT_DEFAULT );
 
 #if defined __AVR__ || defined ARDUINO_ARCH_AVR
     // Allow the SDI-12 library access to interrupts
@@ -180,7 +180,7 @@ bool SDI12Sensors::getSensorInfo(void) {
     // char)][version (3 char)][serial number (<14 char)]<CR><LF>
     String sdiResponse = _SDI12Internal.readStringUntil('\n');
     sdiResponse.trim();
-    MS_DEEP_DBG(F("    <<<"), sdiResponse);
+    PRINTOUT(F("SDI-12 sensor addr["),_SDI12address,F("] Id "), sdiResponse);
 
     // Empty the buffer again
     _SDI12Internal.clearBuffer();
@@ -227,6 +227,7 @@ bool SDI12Sensors::getSensorInfo(void) {
         }
         return true;
     } else {
+        MS_DBG(F("   SDI12 Info Error"));
         return false;
     }
 }
@@ -303,7 +304,12 @@ bool SDI12Sensors::startSingleMeasurement(void) {
         startCommand = "";
         startCommand += _SDI12address;
         startCommand +=
+        #if !defined MS_SDI12_USE_CRC
             "C!";  // Start concurrent measurement - format  [address]['C'][!]
+        #else
+            "CC!";  // Start concurrent measurement - format  [address]['CC'][!]
+            //This is a place holder - the result CRC is not processed
+        #endif //MS_SDI12_USE_CRC            
         _SDI12Internal.clearBuffer();
         _SDI12Internal.sendCommand(startCommand, _extraWakeTime);
         delay(30);  // It just needs this little delay
@@ -416,6 +422,7 @@ bool SDI12Sensors::getResults(void) {
 
         // While there is any data left in the buffer
         //while (_SDI12Internal.available() && (millis() - start) < 3000) {
+        // for MS_SDI12_USE_CRC how to process CRC at end of mesg
         while (_SDI12Internal.available()) {
              if( (millis() - start) > 3000) {
                 PRINTOUT(F("SDI12Sensors::getResults2 ERROR sensor took too long to send data"));
@@ -433,8 +440,8 @@ bool SDI12Sensors::getResults(void) {
                 // Reading the numbers as a float will remove them from the
                 // buffer.
                 float result = _SDI12Internal.parseFloat(SKIP_NONE);
-                // The SDI-12 library should return -9999 on timeout
-                if (result == -9999 || isnan(result)) result = -9999;
+                // The SDI-12 library should return SDI12SENSORS_VALUE_FLOAT_DEFAULT on timeout
+                if (result == SDI12SENSORS_VALUE_FLOAT_DEFAULT  || isnan(result)) result = SDI12SENSORS_VALUE_FLOAT_DEFAULT ;
                 // Print out what we got
                 MS_DBG(F("    <<<"), String(result, 10));
                 // Verify that the number is valid and add it to the result
@@ -442,7 +449,7 @@ bool SDI12Sensors::getResults(void) {
                 // results received so that the next one goes in the next spot
                 // in the variable array.
                 verifyAndAddMeasurementResult(resultsReceived, result);
-                if (result != -9999) {
+                if (result != SDI12SENSORS_VALUE_FLOAT_DEFAULT ) {
                     gotResults = true;
                     resultsReceived++;
                 }
@@ -499,7 +506,7 @@ bool SDI12Sensors::addSingleMeasurementResult(void) {
         // of the "failed" result values
         MS_DBG(getSensorNameAndLocation(), F("is not currently measuring!"));
         for (uint8_t i = 0; i < _numReturnedValues; i++) {
-            verifyAndAddMeasurementResult(i, static_cast<float>(-9999));
+            verifyAndAddMeasurementResult(i, static_cast<float>(SDI12SENSORS_VALUE_FLOAT_DEFAULT ));
         }
     }
 
@@ -542,7 +549,11 @@ bool SDI12Sensors::addSingleMeasurementResult(void) {
         startCommand = "";
         startCommand += _SDI12address;
         startCommand +=
+    #if !defined MS_SDI12_USE_CRC
             "M!";  // Start concurrent measurement - format  [address]['C'][!]
+    #else
+            "MC!";  // Start concurrent measurement - format  [address]['C'][!]
+    #endif //MS_SDI12_USE_CRC   
         _SDI12Internal.clearBuffer();
         _SDI12Internal.sendCommand(startCommand, _extraWakeTime);
         delay(30);  // It just needs this little delay
@@ -617,7 +628,7 @@ bool SDI12Sensors::addSingleMeasurementResult(void) {
         // of the "failed" result values
         MS_DBG(getSensorNameAndLocation(), F("is not currently measuring!"));
         for (uint8_t i = 0; i < _numReturnedValues; i++) {
-            verifyAndAddMeasurementResult(i, static_cast<float>(-9999));
+            verifyAndAddMeasurementResult(i, static_cast<float>(SDI12SENSORS_VALUE_FLOAT_DEFAULT ));
         }
     }
 
@@ -674,8 +685,8 @@ bool SDI12Sensors::addSingleMeasurementResult(void) {
         _SDI12Internal.read();  // ignore the repeated SDI12 address
         for (uint8_t i = 0; i < _numReturnedValues; i++) {
             float result = _SDI12Internal.parseFloat();
-            // The SDI-12 library should return -9999 on timeout
-            if (result == -9999 || isnan(result)) result = -9999;
+            // The SDI-12 library should return SDI12SENSORS_VALUE_FLOAT_DEFAULT on timeout
+            if (result == SDI12SENSORS_VALUE_FLOAT_DEFAULT || isnan(result)) result = SDI12SENSORS_VALUE_FLOAT_DEFAULT ;
             MS_DEEP_DBG(F("    <<< Result #"), i, ':', result);
             verifyAndAddMeasurementResult(i, result);
         }
@@ -697,7 +708,7 @@ bool SDI12Sensors::addSingleMeasurementResult(void) {
         // of the "failed" result values
         MS_DBG(getSensorNameAndLocation(), F("is not currently measuring!"));
         for (uint8_t i = 0; i < _numReturnedValues; i++) {
-            verifyAndAddMeasurementResult(i, static_cast<float>(-9999));
+            verifyAndAddMeasurementResult(i, static_cast<float>(SDI12SENSORS_VALUE_FLOAT_DEFAULT ));
         }
     }
 
