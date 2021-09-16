@@ -303,7 +303,7 @@ DecagonCTD ctdPhy(*CTDSDI12address, SDI12Power, SDI12Data, CTDNumberReadings);
 // ==========================================================================
 //    Insitu Aqua/Level Troll Conductivity, Temperature, and Depth Sensor
 // ==========================================================================
-#include <sensors/InsituTrollSdi12.h>
+#include <sensors/InsituTrollSdi12a.h>
 
 const char*   ITROLLSDI12address   = "1";  // SDI12 Address ITROLL
 const uint8_t ITROLLNumberReadings = 2;    // The number of readings to average
@@ -312,7 +312,7 @@ const int8_t  IT_SDI12Power =
 const int8_t IT_SDI12Data = 7;  // The SDI12 data pin
 
 // Create a  ITROLL sensor object
-InsituTrollSdi12 itrollPhy(*ITROLLSDI12address, IT_SDI12Power, IT_SDI12Data,
+InsituTrollSdi12a itrollPhy(*ITROLLSDI12address, IT_SDI12Power, IT_SDI12Data,
                            ITROLLNumberReadings);
 #endif  // Insitu_TrollSdi12_UUID
 
@@ -821,8 +821,8 @@ Variable* variableList[] = {
     CTDTempFcalc,
 #endif  // Decagon_CTD_UUID
 #if defined Insitu_TrollSdi12_UUID
-    new InsituTrollSdi12_Depth(&itrollPhy, ITROLL_DEPTH_UUID),
-    new InsituTrollSdi12_Temp(&itrollPhy, ITROLL_TEMP_UUID),
+    new InsituTrollSdi12a_Depth(&itrollPhy, ITROLL_DEPTH_UUID),
+    new InsituTrollSdi12a_Temp(&itrollPhy, ITROLL_TEMP_UUID),
 #endif  // Insitu_TrollSdi12_UUID
 #if defined KellerAcculevel_ACT
 // new KellerAcculevel_Pressure(&acculevel, "UUID"),
