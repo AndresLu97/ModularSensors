@@ -1,15 +1,16 @@
 /*
  * @file InsituTrollSdi12a.h
  * @copyright 2020 Stroud Water Research Center
- * Part of the EnviroDIY modular sensors 
+ * Part of the EnviroDIY modular sensors
  * @author Neil Hancock  https://github.com/neilh10/ModularSensors/
  * @author Sara Geleskie Damiano <sdamiano@stroudcenter.org>
  *
- * @brief Contains the InsituTrollSdi12a subclass of the SDI12Sensors class along
- * with the variable subclasses InsituTrollSdi12a_Pressure, InsituTrollSdi12a_Temp, 
- * and InsituTrollSdi12a_Depth
+ * @brief Contains the InsituTrollSdi12a subclass of the SDI12Sensors class
+ * along with the variable subclasses InsituTrollSdi12a_Pressure,
+ * InsituTrollSdi12a_Temp, and InsituTrollSdi12a_Depth
  *
  * These are used for the Insitu Troll.
+ * The order and units are the default settings for the ITROLL
  *
  * This depends on the EnviroDIY SDI-12 library and the SDI12Sensors super
  * class.
@@ -35,39 +36,23 @@
  * The Insitu Aqua/Level Troll require 8-36VDC
  * This can be achieved a Polo #boost device, instructions are at the end
  *
- * @section sensor_instutroll_datasheet Sensor Datasheet
- * Documentation for the SDI-12 Protocol commands and responses
- * The Insitu Level/Aqua Troll can be found at:
- * Insitu SDI-12-Commands-and-Level-TROLL-400-500-700-Responses 20140210.pdf
- * Insitu SDI-12-Commands-and-Aqua-TROLL-100-200-Responses 20070123.pdf
- *
- * I haven't audited why Insitu have a different SDI manual for Level and Aqua
- *
- * For Pressure:
- *  Resolution is 0.001
- *  Accuracy is ±?
- *  Range is 0 – ?
- *
- * For Temperature:
- *  Resolution is 0.1°C
- *  Accuracy is ±1°C
- *  Range is -11°C to +49°C
- *
- * For Depth:
- *  Resolution is 2 mm
- *  Accuracy is ±0.05% of full scale
- *  Range is 0 to 5 m or 0 to 10 m, depending on model
- *
- * Maximum warm-up time in SDI-12 mode: 500ms, assume stability at warm-up
- * Maximum measurement duration: 500ms
+ * @warning Coming from the factory, Troll sensors are set at SDI-12 address '0'.
  *
  * The Insitu Aqua/Level Trolls are programmed through WinSitu
  * Parameters are very flexible and need to be aligned with this program
- * The SDI address needs to be changed to what the class is set to - default is
- *'1' The depth sensor third paramter needs to be created. The expected
- *paramters and order are 0 Pressure (PSI)   ITROLLA_PRESSURE_VAR_NUM 1
- *Temperature (C)  ITROLLA_TEMP_VAR_NUM 2 Depth (ft)       ITROLLA_DEPTH_VAR_NUM
- *Resolution 0.005% For 11.5ft +/ 0.00005ft
+ * The SDI address needs to be changed to what the class is set to - default is '1'.
+ *
+ * The depth sensor third paramter may need to be created. The expected
+ * paramters and order are Pressure (PSI),  Temperature (C),  Depth (ft). 
+ *
+ * @section sensor_instutroll_datasheet Sensor Datasheet
+ * Documentation for the SDI-12 Protocol commands and responses
+ * The Insitu Level/Aqua Troll can be found at:
+ * https://in-situ.com/en/pub/media/support/documents/SDI-12_Commands_Tech_Note.pdf
+ * https://in-situ.com/us/support/documents/sdi-12-commands-and-level-troll-400500700-responses
+ *
+ * @section sensor_instutroll_flags Build flags
+ * @see @ref sdi12_group_flags
  *
  * @menusnip{instutroll}
  */
@@ -96,7 +81,7 @@
 #define ITROLLA_WARM_UP_TIME_MS 500
 
 
-/// @brief Sensor::_stabilizationTime_ms; the Hydros 21 is stable as soon as it
+/// @brief Sensor::_stabilizationTime_ms; the Troll 500 is stable as soon as it
 /// warms up (0ms stabilization).
 #define ITROLLA_STABILIZATION_TIME_MS 0
 
@@ -234,19 +219,19 @@ class InsituTrollSdi12a : public SDI12Sensors {
      * default value of 1.
      */
     InsituTrollSdi12a(char SDI12address, int8_t powerPin, int8_t dataPin,
-                     uint8_t measurementsToAverage = 1)
+                      uint8_t measurementsToAverage = 1)
         : SDI12Sensors(SDI12address, powerPin, dataPin, measurementsToAverage,
                        "InsituTrollSdi12a", ITROLLA_NUM_VARIABLES,
                        ITROLLA_WARM_UP_TIME_MS, ITROLLA_STABILIZATION_TIME_MS,
                        ITROLLA_MEASUREMENT_TIME_MS) {}
     InsituTrollSdi12a(char* SDI12address, int8_t powerPin, int8_t dataPin,
-                     uint8_t measurementsToAverage = 1)
+                      uint8_t measurementsToAverage = 1)
         : SDI12Sensors(SDI12address, powerPin, dataPin, measurementsToAverage,
                        "InsituTrollSdi12a", ITROLLA_NUM_VARIABLES,
                        ITROLLA_WARM_UP_TIME_MS, ITROLLA_STABILIZATION_TIME_MS,
                        ITROLLA_MEASUREMENT_TIME_MS) {}
     InsituTrollSdi12a(int SDI12address, int8_t powerPin, int8_t dataPin,
-                     uint8_t measurementsToAverage = 1)
+                      uint8_t measurementsToAverage = 1)
         : SDI12Sensors(SDI12address, powerPin, dataPin, measurementsToAverage,
                        "InsituTrollSdi12a", ITROLLA_NUM_VARIABLES,
                        ITROLLA_WARM_UP_TIME_MS, ITROLLA_STABILIZATION_TIME_MS,
@@ -272,7 +257,7 @@ class InsituTrollSdi12a_Pressure : public Variable {
     /**
      * @brief Construct a new InsituTrollSdi12a_Pressure object.
      *
-     * @param parentSense The parent InsituTrollSdi12a providing the result values.
+     * @param parentSense The parent InsituTrollSdi12a providing values.
      * @param uuid A universally unique identifier (UUID or GUID) for the
      * variable; optional with the default value of an empty string.
      * @param varCode A short code to help identify the variable in files;
@@ -282,8 +267,9 @@ class InsituTrollSdi12a_Pressure : public Variable {
         Sensor* parentSense, const char* uuid = "",
         const char* varCode = ITROLLA_PRESSURE_DEFAULT_CODE)
         : Variable(parentSense, (const uint8_t)ITROLLA_PRESSURE_VAR_NUM,
-                   (uint8_t)ITROLLA_PRESSURE_RESOLUTION, ITROLLA_PRESSURE_VAR_NAME,
-                   ITROLLA_PRESSURE_UNIT_NAME, varCode, uuid) {}
+                   (uint8_t)ITROLLA_PRESSURE_RESOLUTION,
+                   ITROLLA_PRESSURE_VAR_NAME, ITROLLA_PRESSURE_UNIT_NAME,
+                   varCode, uuid) {}
     /**
      * @brief Construct a new InsituTrollSdi12a_Pressure object.
      *
@@ -292,8 +278,9 @@ class InsituTrollSdi12a_Pressure : public Variable {
      */
     InsituTrollSdi12a_Pressure()
         : Variable((const uint8_t)ITROLLA_PRESSURE_VAR_NUM,
-                   (uint8_t)ITROLLA_PRESSURE_RESOLUTION, ITROLLA_PRESSURE_VAR_NAME,
-                   ITROLLA_PRESSURE_UNIT_NAME, ITROLLA_PRESSURE_DEFAULT_CODE) {}
+                   (uint8_t)ITROLLA_PRESSURE_RESOLUTION,
+                   ITROLLA_PRESSURE_VAR_NAME, ITROLLA_PRESSURE_UNIT_NAME,
+                   ITROLLA_PRESSURE_DEFAULT_CODE) {}
     /**
      * @brief Destroy the InsituTrollSdi12a_Pressure object - no action needed.
      */
@@ -315,14 +302,14 @@ class InsituTrollSdi12a_Temp : public Variable {
     /**
      * @brief Construct a new InsituTrollSdi12a_Temp object.
      *
-     * @param parentSense The parent InsituTrollSdi12a providing the result values.
+     * @param parentSense The parent InsituTrollSdi12a providing the values.
      * @param uuid A universally unique identifier (UUID or GUID) for the
      * variable; optional with the default value of an empty string.
      * @param varCode A short code to help identify the variable in files;
      * optional with a default value of "ITROLLtemp".
      */
     InsituTrollSdi12a_Temp(Sensor* parentSense, const char* uuid = "",
-                          const char* varCode = ITROL_TEMP_DEFAULT_CODE)
+                           const char* varCode = ITROL_TEMP_DEFAULT_CODE)
         : Variable(parentSense, (const uint8_t)ITROLLA_TEMP_VAR_NUM,
                    (uint8_t)ITROLLA_TEMP_RESOLUTION, ITROLLA_TEMP_TEMP_VAR_NAME,
                    ITROLLA_TEMP_TEMP_UNIT_NAME, varCode, uuid) {}
@@ -358,14 +345,14 @@ class InsituTrollSdi12a_Depth : public Variable {
     /**
      * @brief Construct a new InsituTrollSdi12a_Depth object.
      *
-     * @param parentSense The parent InsituTrollSdi12a providing the result values.
+     * @param parentSense The parent InsituTrollSdi12a providing the values.
      * @param uuid A universally unique identifier (UUID or GUID) for the
      * variable; optional with the default value of an empty string.
      * @param varCode A short code to help identify the variable in files;
      * optional with a default value of "ITROLLdepth".
      */
     InsituTrollSdi12a_Depth(Sensor* parentSense, const char* uuid = "",
-        const char* varCode = ITROLLA_DEPTH_DEFAULT_CODE)
+                            const char* varCode = ITROLLA_DEPTH_DEFAULT_CODE)
         : Variable(parentSense, (const uint8_t)ITROLLA_DEPTH_VAR_NUM,
                    (uint8_t)ITROLLA_DEPTH_RESOLUTION, ITROLLA_DEPTH_VAR_NAME,
                    ITROLLA_DEPTH_UNIT_NAME, varCode, uuid) {}
