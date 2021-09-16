@@ -18,9 +18,9 @@
  */
 /* clang-format off */
 /**
- * @defgroup sensor_instutroll Insitu LevelTroll 500
- * Classes for the Insitru LevelTroll  pressure, temperature, and depth sensor.
- *
+ * @defgroup sensor_instutroll Insitu LevelTroll 400 500 700
+ * Classes for the Insitru LevelTroll feature sensors  pressure, temperature, and depth.
+ * 
  * @ingroup sdi12_group
  *
  * @tableofcontents
@@ -29,26 +29,35 @@
  * @section sensor_instutroll_intro Introduction
  *
  * > A slim 1.8 cm diameter sensor, 
- * > accurate, temperature compensated to 0.1% across Full Scale and across temperature range, 
- * > with internal logger for reliable data collection,
- * > temperature, and depth in both groundwater and surface water.
+ * > depth measuremente temperature compensated to 0.1% (0.05%) across Full Scale depth range and across temperature range. 
+ * >
+ * > Has an internal logger for reliable data collection.
+ * >
+ * > Reports sensor serial number and model in uSD .csv file
+
  *
  * The Insitu Aqua/Level Troll require 8-36VDC
  * This can be achieved a Polo #boost device, instructions are at the end
  *
  * @warning Coming from the factory, Troll sensors are set at SDI-12 address '0'.
  *
- * The Insitu Aqua/Level Trolls are programmed through WinSitu
- * Parameters are very flexible and need to be aligned with this program
+ * The Insitu Aqua/Level Trolls are programmed through WinSitu.
+ * 
  * The SDI address needs to be changed to what the class is set to - default is '1'.
  *
+ * Parameters are very flexible and need to be aligned used WinSitu with this module.
+ * 
  * The depth sensor third paramter may need to be created. The expected
  * paramters and order are Pressure (PSI),  Temperature (C),  Depth (ft). 
  *
+ * Tested with Level Troll 500.
+ * 
  * @section sensor_instutroll_datasheet Sensor Datasheet
  * Documentation for the SDI-12 Protocol commands and responses
  * The Insitu Level/Aqua Troll can be found at:
+ * 
  * https://in-situ.com/en/pub/media/support/documents/SDI-12_Commands_Tech_Note.pdf
+ * 
  * https://in-situ.com/us/support/documents/sdi-12-commands-and-level-troll-400500700-responses
  *
  * @section sensor_instutroll_flags Build flags
@@ -154,7 +163,7 @@
  * @anchor sensor_insitutroll_depth
  * @name Water Depth
  * The water depth variable from a Insitu Troll
- * - Range is 0 to 5 m or 0 to 10 m, depending on model
+ * - Range is 0 to 3.5m to 350m depending on model
  * - Accuracy is ±0.05% of full scale
  *
  * {{ @ref InsituTrollSdi12a_Depth::InsituTrollSdi12a_Depth }}
