@@ -60,6 +60,9 @@ Do-Build
 $hext = "_LT5_lte"
 Do-Build
 
+$hext = "_LT5_wifi"
+Do-Build
+
 $hext = "_LT5KA_lte"
 Do-Build
 
