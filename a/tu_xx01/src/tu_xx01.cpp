@@ -301,7 +301,7 @@ DecagonCTD ctdPhy(*CTDSDI12address, SDI12Power, SDI12Data, CTDNumberReadings);
 
 #if defined Insitu_TrollSdi12_UUID
 // ==========================================================================
-//    Insitu Aqua/Level Troll Conductivity, Temperature, and Depth Sensor
+//    Insitu Aqua/Level Troll Pressure, Temperature, and Depth Sensor
 // ==========================================================================
 #include <sensors/InsituTrollSdi12a.h>
 

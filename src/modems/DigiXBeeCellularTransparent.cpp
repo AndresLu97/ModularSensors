@@ -55,7 +55,7 @@ bool DigiXBeeCellularTransparent::modemWakeFxn(void) {
         MS_DBG(F("Turning off airplane mode..."));
         if (gsmModem.commandMode()) {
             gsmModem.sendAT(GF("AM"), 0);
-            gsmModem.waitResponse();
+            gsmModem.waitResponse(TGWRIDT+0x01);
             // Write changes to flash and apply them
             gsmModem.writeChanges();
             // Exit command mode
@@ -74,7 +74,7 @@ bool DigiXBeeCellularTransparent::modemSleepFxn(void) {
         MS_DBG(F("Turning on airplane mode..."));
         if (gsmModem.commandMode()) {
             gsmModem.sendAT(GF("AM"), 0);
-            gsmModem.waitResponse();
+            gsmModem.waitResponse(TGWRIDT+0x00);
             // Write changes to flash and apply them
             gsmModem.writeChanges();
             // Exit command mode
@@ -106,13 +106,13 @@ bool DigiXBeeCellularTransparent::extraModemSetup(void) {
         gsmModem.getSeries();
         _modemName = gsmModem.getModemName();
         gsmModem.sendAT(F("IM"));  // Request Module Serial Number
-        gsmModem.waitResponse(1000, _modemSerialNumber);
+        gsmModem.waitResponse(TGWRIDT+0x02,1000, _modemSerialNumber);
         // gsmModem.sendAT(F("S#"));  // Request Module ICCID
 
         gsmModem.sendAT(F("HV"));  // Request Module Hw Version
-        gsmModem.waitResponse(1000, _modemHwVersion);
+        gsmModem.waitResponse(TGWRIDT+0x03,1000, _modemHwVersion);
         gsmModem.sendAT(F("VR"));  // Firmware Version
-        gsmModem.waitResponse(1000, _modemFwVersion);
+        gsmModem.waitResponse(TGWRIDT+0x04,1000, _modemFwVersion);
         // gsmModem.sendAT(F("MR"));  // Firmware VersionModuleModem 
         PRINTOUT(F("Lte internet comms with"),_modemName, 
                  F("IMEI "), _modemSerialNumber,F("HwVer"),_modemHwVersion, F("FwVer"), _modemFwVersion);
@@ -122,20 +122,20 @@ bool DigiXBeeCellularTransparent::extraModemSetup(void) {
          * NOTE: Only the `DTR_N/SLEEP_RQ/DIO8` pin (9 on the bee socket) can be
          * used for this pin sleep/wake. */
         gsmModem.sendAT(GF("D8"), 1);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x05) == 1;
         /** Enable status indication on `DIO9` - it will be HIGH when the XBee
          * is awake.
          * NOTE: Only the `ON/SLEEP_N/DIO9` pin (13 on the bee socket) can be
          * used for direct status indication. */
         gsmModem.sendAT(GF("D9"), 1);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x06) == 1;
         /** Enable CTS on `DIO7` - it will be `LOW` when it is clear to send
          * data to the XBee.  This can be used as proxy for status indication if
          * that pin is not readable.
          * NOTE: Only the `CTS_N/DIO7` pin (12 on the bee socket) can be used
          * for CTS. */
         gsmModem.sendAT(GF("D7"), 1);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x07) == 1;
         /** Enable association indication on `DIO5` - this is should be directly
          * attached to an LED if possible.
          * - Solid light indicates no connection
@@ -146,46 +146,46 @@ bool DigiXBeeCellularTransparent::extraModemSetup(void) {
          * NOTE: Only the `Associate/DIO5` pin (15 on the bee socket) can be
          * used for this function. */
         gsmModem.sendAT(GF("D5"), 1);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x08) == 1;
         /** Enable RSSI PWM output on `DIO10` - this should be directly attached
          * to an LED if possible.  A higher PWM duty cycle (and thus brighter
          * LED) indicates better signal quality.
          * NOTE: Only the `DIO10/PWM0` pin (6 on the bee socket) can be used for
          * this function. */
         gsmModem.sendAT(GF("P0"), 1);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x09) == 1;
         /** Enable pin sleep on the XBee. */
         MS_DBG(F("Setting Sleep Options..."));
         gsmModem.sendAT(GF("SM"), 1);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x0A) == 1;
         /** Disassociate from the network for the lowest power deep sleep. */
         gsmModem.sendAT(GF("SO"), 0);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x0B) == 1;
         MS_DBG(F("Setting Other Options..."));
         /** Disable remote manager, USB Direct, and LTE PSM
          * NOTE:  LTE-M's PSM (Power Save Mode) sounds good, but there's no easy
          * way on the LTE-M Bee to wake the cell chip itself from PSM, so we'll
          * use the Digi pin sleep instead. */
         gsmModem.sendAT(GF("DO"), 0);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x0C) == 1;
         /** Ask data to be "packetized" and sent out with every new line (0x0A)
          * character. */
         gsmModem.sendAT(GF("TD0A"));
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x0D) == 1;
         /* Make sure USB direct is NOT enabled on the XBee3 units. */
         gsmModem.sendAT(GF("P1"), 0);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x0E) == 1;
         /** Set the socket timeout to 10s (this is default). */
         gsmModem.sendAT(GF("TM"), 64);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x0F) == 1;
         // MS_DBG(F("Setting Cellular Carrier Options..."));
         // // Carrier Profile - 1 = No profile/SIM ICCID selected
         // gsmModem.sendAT(GF("CP"),0);
-        // gsmModem.waitResponse();  // Don't check for success - only works on
+        // gsmModem.waitResponse(TGWRIDT+0x00);  // Don't check for success - only works on
         // LTE
         // // Cellular network technology - LTE-M/NB IoT
         // gsmModem.sendAT(GF("N#"),0);
-        // gsmModem.waitResponse();  // Don't check for success - only works on
+        // gsmModem.waitResponse(TGWRIDT+0x00);  // Don't check for success - only works on
         // LTE
         MS_DBG(F("Setting the APN..."));
         /** Save the network connection parameters. */
@@ -193,7 +193,7 @@ bool DigiXBeeCellularTransparent::extraModemSetup(void) {
         MS_DBG(F("Ensuring XBee is in transparent mode..."));
         /* Make sure we're really in transparent mode. */
         gsmModem.sendAT(GF("AP0"));
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDT+0x10) == 1;
         /** Write all changes to flash and apply them. */
         MS_DBG(F("Applying changes..."));
         gsmModem.writeChanges();
@@ -283,13 +283,13 @@ bool DigiXBeeCellularTransparent::extraModemSetup(void) {
 #define MDM_IP_STR_MIN_LEN 7
 #define MDM_LP_IPMAX 16
             gsmModem.sendAT(F("MY"));  // Request IP #
-            gsmModem.waitResponse(1000, xbeeRsp);
+            gsmModem.waitResponse(TGWRIDT+0x11,1000, xbeeRsp);
             MS_DBG(F("Flush rsp "), xbeeRsp);
             for (int mdm_lp = 1; mdm_lp <= MDM_LP_IPMAX; mdm_lp++) {
                 xbeeRsp = "";
                 delay(mdm_lp * 500);
                 gsmModem.sendAT(F("MY"));  // Request IP #
-                gsmModem.waitResponse(1000, xbeeRsp);
+                gsmModem.waitResponse(TGWRIDT+0x12,1000, xbeeRsp);
                 PRINTOUT(F("mdmIP["), mdm_lp, "/", MDM_LP_IPMAX, F("] '"),
                          xbeeRsp, "'=", xbeeRsp.length());
                 if (0 != xbeeRsp.compareTo("0.0.0.0") &&
@@ -317,7 +317,7 @@ bool DigiXBeeCellularTransparent::extraModemSetup(void) {
                 for (int mdm_lp = 1; mdm_lp <= MDM_LP_DNSMAX; mdm_lp++) {
                     delay(mdm_lp * 500);
                     gsmModem.sendAT(F("NS"));  // Request DNS #
-                    index &= gsmModem.waitResponse(1000, xbeeRsp);
+                    index &= gsmModem.waitResponse(TGWRIDT+0x00,1000, xbeeRsp);
                     MS_DBG(F("mdmDNS["), mdm_lp, "/", MDM_LP_DNSMAX, F("] '"),
                            xbeeRsp, "'");
                     if (0 != xbeeRsp.compareTo("0.0.0.0") &&

@@ -366,10 +366,6 @@
         MS_START_DEBUG_TIMER                                          \
         MS_DBG(F("\nAttempting to connect to WiFi network..."));      \
         if (!(gsmModem.isNetworkConnected())) {                       \
-            MS_DBG(F("Sending credentials..."));                      \
-            while (!gsmModem.networkConnect(_ssid, _pwd)) {}          \
-            MS_DBG(F("Waiting up to"), maxConnectionTime / 1000,      \
-                   F("seconds for connection"));                      \
             if (!gsmModem.waitForNetwork(maxConnectionTime)) {        \
                 PRINTOUT(F("... WiFi connection failed"));              \
                 return false;                                         \
