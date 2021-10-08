@@ -1,6 +1,7 @@
 # Geographical Customizations seperate file, to log data to EnviroDIY/Monitor My Watershed
 
 These can be built with 
+in shell step to exampes\tu_xx01
 .\doMe.ps1  <release_num>   eg .\doMe.ps1 0.30.0dvlp  .hex are put in ../../../releases
 
 This sketch uses 
