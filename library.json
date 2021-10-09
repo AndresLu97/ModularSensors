@@ -107,6 +107,7 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
+      "otherInstance": [
       "name": "TinyGSM",
       "owner": "vshymanskyy",
       "version": "~0.11.3",
@@ -114,6 +115,7 @@
       "authors": ["Volodymyr Shymanskyy", "Sara Damiano"],
       "frameworks": "arduino",
       "platforms": "atmelavr, atmelsam"
+      ]
     },
     {
       "name": "PubSubClient",
@@ -190,6 +192,7 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
+      "otherInstance": [
       "name": "Adafruit INA219",
       "owner": "adafruit",
       "library id": "160",
@@ -199,6 +202,7 @@
       "authors": ["Adafruit"],
       "frameworks": "arduino",
       "platforms": "atmelavr, atmelsam"
+      ]
     },
     {
       "name": "Adafruit MPL115A2",
@@ -246,6 +250,7 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
+      "otherInstance": [
       "name": "SDI-12",
       "owner": "envirodiy",
       "library id": "1486",
@@ -260,6 +265,7 @@
       ],
       "frameworks": "arduino",
       "platforms": "atmelavr, atmelsam"
+    ]
     },
     {
       "name": "MS5803",
