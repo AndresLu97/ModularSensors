@@ -107,15 +107,13 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
-      "otherInstance": [
-      "name": "TinyGSM",
+      "name": "TinyGSMxxx",
       "owner": "vshymanskyy",
       "version": "~0.11.3",
       "note": "A small Arduino library for GPRS modules.",
       "authors": ["Volodymyr Shymanskyy", "Sara Damiano"],
       "frameworks": "arduino",
       "platforms": "atmelavr, atmelsam"
-      ]
     },
     {
       "name": "PubSubClient",
@@ -192,8 +190,7 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
-      "otherInstance": [
-      "name": "Adafruit INA219",
+      "name": "Adafruit INA219xxx",
       "owner": "adafruit",
       "library id": "160",
       "url": "https://github.com/adafruit/Adafruit_INA219.git",
@@ -202,7 +199,6 @@
       "authors": ["Adafruit"],
       "frameworks": "arduino",
       "platforms": "atmelavr, atmelsam"
-      ]
     },
     {
       "name": "Adafruit MPL115A2",
@@ -250,8 +246,7 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
-      "otherInstance": [
-      "name": "SDI-12",
+      "name": "SDI-12xxx",
       "owner": "envirodiy",
       "library id": "1486",
       "version": "~2.1.4",
@@ -265,7 +260,6 @@
       ],
       "frameworks": "arduino",
       "platforms": "atmelavr, atmelsam"
-    ]
     },
     {
       "name": "MS5803",
