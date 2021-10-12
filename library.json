@@ -63,7 +63,7 @@
   },
   "dependencies": [
     {
-      "name": "EnviroDIY_DS3231",
+      "name": "EnviroDIY_DS3231xxx",
       "owner": "envirodiy",
       "library id": "2079",
       "url": "https://github.com/EnviroDIY/Sodaq_DS3231.git",
@@ -190,7 +190,7 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
-      "name": "Adafruit INA219xxx",
+      "name": "Adafruit_INA219xxx",
       "owner": "adafruit",
       "library id": "160",
       "url": "https://github.com/adafruit/Adafruit_INA219.git",
