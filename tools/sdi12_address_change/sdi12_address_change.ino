@@ -67,7 +67,7 @@ char   oldAddress = '!';  // invalid address as placeholder
 // expects a char, '0'-'9', 'a'-'z', or 'A'-'Z'
 boolean
 checkActive(byte i) {  // this checks for activity at a particular address
-    Serial.print("Checking address ");
+    Serial.print("\n\rChecking address ");
     Serial.print(static_cast<char>(i));
     Serial.print("...");
     myCommand = "";
@@ -76,16 +76,26 @@ checkActive(byte i) {  // this checks for activity at a particular address
     myCommand += "!";
 
     for (int j = 0; j < 3; j++) {  // goes through three rapid contact attempts
+        mySDI12.clearBuffer();
         mySDI12.sendCommand(myCommand);
         delay(30);
-        if (mySDI12.available()) {  // If we here anything, assume we have an
+        if (int avl = mySDI12.available()) {  // If we here anything, assume we have an
                                     // active sensor
-            Serial.println("Occupied");
+            Serial.print(avl);
+            Serial.print("]Occupied ~ ");
             mySDI12.clearBuffer();
+            myCommand = "";
+            myCommand += static_cast<char>(i);  //  [address][!]
+            myCommand += "I!";
+            mySDI12.sendCommand(myCommand);
+            delay(30);
+            String sdiResponse = mySDI12.readStringUntil('\n');
+            sdiResponse.trim();
+            Serial.println( sdiResponse);
             return true;
         } else {
-            Serial.println("Vacant");  // otherwise it is vacant.
-            mySDI12.clearBuffer();
+            Serial.print("  Vacant");  // otherwise it is vacant.
+            //mySDI12.clearBuffer();
         }
     }
     return false;
@@ -101,10 +111,6 @@ void setup() {
     pinMode(DATA_PIN, INPUT_PULLUP);
     enableInterrupt(DATA_PIN, SDI12::handleInterrupt, CHANGE);
 
-    Serial.println("Opening SDI-12 bus...");
-    mySDI12.begin();
-    delay(500);  // allow things to settle
-
     // Power the sensors;
     if (POWER_PIN > 0) {
         Serial.println("Powering up sensors...");
@@ -112,6 +118,12 @@ void setup() {
         digitalWrite(POWER_PIN, HIGH);
         delay(200);
     }
+
+    Serial.println("\n\r\n\rr1 Opening SDI-12 bus...");
+    mySDI12.begin();
+    delay(500);  // allow things to settle
+
+    checkActive('0'); //Throw away
 }
 
 void loop() {
@@ -143,7 +155,7 @@ void loop() {
 
     if (!found) {
         Serial.println(
-            "No sensor detected. Check physical connections.");  // couldn't
+            "\n\rNo sensor detected. Check physical connections.");  // couldn't
                                                                  // find a
                                                                  // sensor.
                                                                  // check
@@ -173,7 +185,10 @@ void loop() {
 
         // the syntax of the change address command
         // is:[currentAddress]A[newAddress]!
-        Serial.println("Readdressing sensor.");
+        Serial.print("Readdressing sensor. From ");
+        Serial.print(oldAddress);
+        Serial.print(" to ");
+        Serial.println(newAdd);
         myCommand = "";
         myCommand += static_cast<char>(oldAddress);
         myCommand += "A";
@@ -186,6 +201,6 @@ void loop() {
         delay(300);
         mySDI12.clearBuffer();
 
-        Serial.println("Success. Rescanning for verification.");
+        Serial.println(" Rescanning for verification.");
     }
 }

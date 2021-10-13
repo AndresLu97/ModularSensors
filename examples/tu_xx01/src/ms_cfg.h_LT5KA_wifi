@@ -1,6 +1,6 @@
 /*****************************************************************************
 ms_cfg.h_LT5_wifi  - ModularSensors Configuration - tgt _LT5 Acculevel / WiFi
-Status 210326: 0.28.3 updated cc, not tested
+
 Written By:  Neil Hancock www.envirodiy.org/members/neilh20/
 Development Environment: PlatformIO
 Hardware Platform(s): EnviroDIY Mayfly Arduino Datalogger+RS485 Wingboard
@@ -141,7 +141,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define TINY_GSM_MODEM_XBEE
 
 // The APN for the gprs connection, unnecessary for WiFi
-#define APN_CDEF "hologram"
+#define APN_CDEF "VZWINTERNET"
 
 // The WiFi access point
 #define WIFIID_CDEF "xxx"

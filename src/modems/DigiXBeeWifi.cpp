@@ -64,14 +64,14 @@ bool DigiXBeeWifi::extraModemSetup(void) {
             gsmModem.getSeries();
             _modemName = gsmModem.getModemName();
             gsmModem.sendAT(F("SL"));  // Request Module MAC/Serial Number Low
-            gsmModem.waitResponse(1000, xbeeSnLow);
+            gsmModem.waitResponse(TGWRIDW+0x01,1000, xbeeSnLow);
             gsmModem.sendAT(F("SH"));  // Request Module MAC/Serial Number High
-            gsmModem.waitResponse(1000, xbeeSnHigh);
+            gsmModem.waitResponse(TGWRIDW+0x02,1000, xbeeSnHigh);
             _modemSerialNumber = xbeeSnHigh+xbeeSnLow;
             gsmModem.sendAT(F("HV"));  // Request Module Hw Version
-            gsmModem.waitResponse(1000, _modemHwVersion);
+            gsmModem.waitResponse(TGWRIDW+0x03,1000, _modemHwVersion);
             gsmModem.sendAT(F("VR"));  // Firmware Version
-            gsmModem.waitResponse(1000, _modemFwVersion);
+            gsmModem.waitResponse(TGWRIDW+0x04,1000, _modemFwVersion);
             PRINTOUT(F("XbeeWiFi internet comms with"),_modemName, 
                  F("Mac/Sn "), _modemSerialNumber,F("HwVer"),_modemHwVersion, F("FwVer"), _modemFwVersion);
         }
@@ -96,7 +96,7 @@ bool DigiXBeeWifi::extraModemSetup(void) {
         // 0 4000 14 TH02 DIO13/DOUT
         //   3D3F
         gsmModem.sendAT(GF("PR"), "3D3F");
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDW+0x05) == 1;
         if (!success) { MS_DBG(F("Fail PR "), success); }
 #if !defined MODEMPHY_NEVER_SLEEPS
 #define XBEE_SLEEP_SETTING 1
@@ -110,12 +110,12 @@ bool DigiXBeeWifi::extraModemSetup(void) {
         // Set DIO8 to be used for sleep requests
         // NOTE:  Only pin 9/DIO8/DTR can be used for this function
         gsmModem.sendAT(GF("D8"), XBEE_SLEEP_SETTING);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDW+0x06) == 1;
         // Turn on status indication pin - it will be HIGH when the XBee is
         // awake NOTE:  Only pin 13/ON/SLEEPnot/DIO9 can be used for this
         // function
         gsmModem.sendAT(GF("D9"), XBEE_SLEEP_SETTING);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDW+0x07) == 1;
         if (!success) { MS_DBG(F("Fail D9 "), success); } /**/
         // /#endif //MODEMPHY_USE_SLEEP_PINS_SETTING
         // Turn on CTS pin - it will be LOW when the XBee is ready to receive
@@ -123,31 +123,31 @@ bool DigiXBeeWifi::extraModemSetup(void) {
         // status pin is not accessible NOTE:  Only pin 12/DIO7/CTS can be used
         // for this function
         /*gsmModem.sendAT(GF("D7"),1);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDW+0x00) == 1;
         if (!success) {MS_DBG(F("Fail D7 "),success);}*/
         // Turn on the associate LED (if you're using a board with one)
         // NOTE:  Only pin 15/DIO5 can be used for this function
         // gsmModem.sendAT(GF("D5"),1);
-        // success &= gsmModem.waitResponse() == 1;
+        // success &= gsmModem.waitResponse(TGWRIDW+0x00) == 1;
         // Turn on the RSSI indicator LED (if you're using a board with one)
         // NOTE:  Only pin 6/DIO10/PWM0 can be used for this function
         // gsmModem.sendAT(GF("P0"),1);
-        // success &= gsmModem.waitResponse() == 1;
+        // success &= gsmModem.waitResponse(TGWRIDW+0x00) == 1;
         // Set to TCP mode
         gsmModem.sendAT(GF("IP"), 1);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDW+0x08) == 1;
         if (!success) { MS_DBG(F("Fail IP "), success); }
 
         // Put the XBee in pin sleep mode in conjuction with D8=1
         MS_DBG(F("Setting Sleep Options..."));
         gsmModem.sendAT(GF("SM"), XBEE_SLEEP_SETTING);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDW+0x09) == 1;
         // Disassociate from network for lowest power deep sleep
         // 40 - Aay associated with AP during sleep - draws more current
         // (+10mA?) 100 -Cyclic sleep ST specifies time before reutnring to
         // sleep 200 - SRGD magic number
         gsmModem.sendAT(GF("SO"), XBEE_SLEEP_ASSOCIATE);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDW+0x0a) == 1;
 
         MS_DBG(F("Setting Wifi Network Options..."));
         // Put the network connection parameters into flash
@@ -158,7 +158,12 @@ bool DigiXBeeWifi::extraModemSetup(void) {
             success = true;
         }
         gsmModem.sendAT(GF("TM"), 64);
-        success &= gsmModem.waitResponse() == 1;
+        success &= gsmModem.waitResponse(TGWRIDW+0x0b) == 1;
+        //IPAddress newHostIp = IPAddress(0, 0, 0, 0); //default in NV
+        gsmModem.sendAT(GF("DL"), GF("0.0.0.0"));
+        success &= gsmModem.waitResponse(TGWRIDW+0x0b) == 1;
+
+
         if (success) {
             MS_DBG(F("Setup Wifi Network "), _ssid);
         } else {
@@ -210,7 +215,7 @@ bool DigiXBeeWifi::extraModemSetup(void) {
             for (int mdm_lp = 1; mdm_lp <= MDM_LP_IPMAX; mdm_lp++) {
                 delay(mdm_lp * 500);
                 gsmModem.sendAT(F("MY"));  // Request IP #
-                index = gsmModem.waitResponse(1000, xbeeRsp);
+                index = gsmModem.waitResponse(TGWRIDW+0x0c,1000, xbeeRsp);
                 MS_DBG(F("mdmIP["), mdm_lp, "/", MDM_LP_IPMAX, F("] '"),
                        xbeeRsp, "'=", xbeeRsp.length());
                 if (0 != xbeeRsp.compareTo("0.0.0.0") &&
@@ -236,7 +241,7 @@ bool DigiXBeeWifi::extraModemSetup(void) {
                 for (int mdm_lp = 1; mdm_lp <= MDM_LP_DNSMAX; mdm_lp++) {
                     delay(mdm_lp * 500);
                     gsmModem.sendAT(F("NS"));  // Request DNS #
-                    index &= gsmModem.waitResponse(1000, xbeeRsp);
+                    index &= gsmModem.waitResponse(TGWRIDW+0x0d,1000, xbeeRsp);
                     MS_DBG(F("mdmDNS["), mdm_lp, "/", MDM_LP_DNSMAX, F("] '"),
                            xbeeRsp, "'");
                     if (0 != xbeeRsp.compareTo("0.0.0.0") &&
@@ -284,9 +289,17 @@ bool DigiXBeeWifi::extraModemSetup(void) {
 
 
 void DigiXBeeWifi::disconnectInternet(void) {
-    // Wifi XBee doesn't like to disconnect AT ALL, so we're doing nothing
-    // If you do disconnect, you must power cycle before you can reconnect
-    // to the same access point.
+    // Ensure Wifi XBee IP socket torn down by forcing connection to localhost IP
+    // For A XBee S6B bug, then force restart
+    // Note: TinyGsmClientXbee.h:modemStop() had a hack for closing socket with Timeout=0 "TM0" for S6B disabled
+
+    String oldRemoteIp = gsmClient.remoteIP();
+    IPAddress newHostIp = IPAddress(127, 0, 0, 1); //localhost
+    gsmClient.connect(newHostIp,80);
+    //??gsmClient.modemConnect(newHostpP,80);// doesn't work
+    MS_DBG(gsmModem.getBeeName(), oldRemoteIp, F(" disconnectInternet set to "),gsmClient.remoteIP());
+    
+    gsmModem.restart();
 }
 
 
@@ -336,7 +349,7 @@ uint32_t DigiXBeeWifi::getNISTTime(void) {
         IPAddress ip1(132, 163, 97, 1);  // Initialize
 #if 0
         gsmModem.sendAT(F("time-e-wwv.nist.gov"));
-        index = gsmModem.waitResponse(4000, nistIpStr);
+        index = gsmModem.waitResponse(TGWRIDW+0x00,4000, nistIpStr);
         nistIpStr.trim();
         uint16_t nistIp_len = nistIpStr.length();
         if ((nistIp_len < 7) || (nistIp_len > 20)) 
@@ -352,7 +365,8 @@ uint32_t DigiXBeeWifi::getNISTTime(void) {
 #else
         ip1.fromString(ipAddr[i]);
         PRINTOUT(F("NIST lookup mdmIP["), i, "/", NIST_SERVER_RETRYS,
-                   F("] with "), ipAddr[i]);
+                   F("] with "), ip1);
+//                   F("] with "), ipAddr[i]);                   
 #endif 
         connectionMade = gsmClient.connect(ip1, TIME_PROTOCOL_PORT);
         // Need to send something before connection is made

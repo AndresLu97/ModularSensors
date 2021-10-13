@@ -63,7 +63,7 @@
   },
   "dependencies": [
     {
-      "name": "EnviroDIY_DS3231",
+      "name": "EnviroDIY_DS3231xxx",
       "owner": "envirodiy",
       "library id": "2079",
       "url": "https://github.com/EnviroDIY/Sodaq_DS3231.git",
@@ -107,7 +107,7 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
-      "name": "TinyGSM",
+      "name": "TinyGSMxxx",
       "owner": "vshymanskyy",
       "version": "~0.11.3",
       "note": "A small Arduino library for GPRS modules.",
@@ -190,7 +190,7 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
-      "name": "Adafruit INA219",
+      "name": "Adafruit_INA219xxx",
       "owner": "adafruit",
       "library id": "160",
       "url": "https://github.com/adafruit/Adafruit_INA219.git",
@@ -246,7 +246,7 @@
       "platforms": "atmelavr, atmelsam"
     },
     {
-      "name": "SDI-12",
+      "name": "SDI-12xxx",
       "owner": "envirodiy",
       "library id": "1486",
       "version": "~2.1.4",

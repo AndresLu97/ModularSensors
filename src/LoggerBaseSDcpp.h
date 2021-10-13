@@ -64,7 +64,7 @@ void Logger::SD1_ListReadings() {
     _fileName.toCharArray(charFileName, fileNameLength);
     if (logFile.open(charFileName, O_RDONLY)) 
     {
-        MS_DBG(F("Opened existing file:"), _filename);
+        MS_DBG(F("Opened existing file:"), _fileName);
         //Need to have watchdog not print while listing
         while (logFile.available()) {
             Serial.write(logFile.read());
@@ -73,7 +73,7 @@ void Logger::SD1_ListReadings() {
         logFile.close();
         Serial.println(); 
     } else {
-        MS_DBG(F("Unable to to find file:"), _filename);
+        MS_DBG(F("Unable to to find file:"), _fileName);
     }
 }
 

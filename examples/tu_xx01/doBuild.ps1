@@ -27,7 +27,7 @@ function Do-Build {
         copy src\ms_cfg.h$hext .\src\ms_cfg.h 
         $(ls .\src\ms_cfg.h).LastWriteTime = Get-Date
         Write-host $(cmd /r dir /s .\src\ms_cfg.h )
-        C:\Users\neilh77a\.platformio\penv\Scripts\pio run
+        pio run
         move .\.pio\build\mayfly\firmware.hex  $dest_file
         Write-Output "**** Build Output in $dest_file"
     }
@@ -51,13 +51,16 @@ if (Test-Path -Path $envirodiy_dir) {
 } else {
     Write-Output  " $envirodiy_dir already removed`n"
 }
-C:\Users\neilh77a\.platformio\penv\Scripts\pio run --target clean
+pio run --target clean
 
 
 $hext = "_EC"
 Do-Build
 
 $hext = "_LT5_lte"
+Do-Build
+
+$hext = "_LT5_wifi"
 Do-Build
 
 $hext = "_LT5KA_lte"
