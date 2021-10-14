@@ -36,7 +36,11 @@
 // Bring in the libraries to handle the processor sleep/standby modes
 // The SAMD library can also the built-in clock on those modules
 #if defined(ARDUINO_ARCH_SAMD)
+#if defined __SAMD51__
+#include "RTC_SAMD51.h"
+#else //Assume SAMD21
 #include <RTCZero.h>
+#endif //__SAMD51__
 #include "WatchDogs/WatchDogSAMD.h"
 #elif defined(ARDUINO_ARCH_AVR) || defined(__AVR__)
 #include <avr/power.h>

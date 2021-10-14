@@ -15,6 +15,8 @@ WiFiClient client;
 
 //The udp library class
 WiFiUDP udp;
+wl_status_t  wifi_status=WL_IDLE_STATUS;
+bool wifi_pwr_off=true;
 
 //ntpHelper::ntpHelper() {}
 //ntpHelper::~ntpHelper() {}
@@ -27,44 +29,60 @@ bool ntpHelper::connectToWiFi(const char* ssid, const char* pwd) {
     WiFi.disconnect(true);
 
     Serial.println("Waiting for WIFI connection...");
-
+    _ssid = ssid;
+    _password= pwd;
     //Initiate connection
     WiFi.begin(ssid, pwd);
 
-    while (WiFi.status() != WL_CONNECTED) {
+    delay(100); 
+    while ((wifi_status=  WiFi.status()) != WL_CONNECTED) {
+        Serial.printf("Waiting for WIFI connection (%d)...",wifi_status);
+        WiFi.begin(ssid, pwd);
         delay(500);
     }
-
-    Serial.println("Connected.");
-    printWifiStatus();
+    //Serial.println("Connected.");
 
     return true;
 
 }
 
 unsigned long ntpHelper::getNTPtime() {
-
+ 
     // module returns a unsigned long time valus as secs since Jan 1, 1970 
     // unix time or 0 if a problem encounted
-
+ 
     //only send data when connected
-    if (WiFi.status() == WL_CONNECTED) {
+    wifi_status = WiFi.status();
+    if ( WL_DISCONNECTED == wifi_status) {
+        // try and connect
+        for (int wifi_lp=0; wifi_lp<5;wifi_lp++) {
+            Serial.printf("WiFi disconnected status %d try aain \n\r",wifi_status);
+            connectToWiFi(_ssid, _password);
+            wifi_status = WiFi.status();
+            if (WL_CONNECTED == wifi_status ) {
+                delay(100);
+                break;}
+        }
+
+    } 
+    if (WL_CONNECTED == wifi_status) {
         //initializes the UDP state
         //This initializes the transfer buffer
         udp.begin(WiFi.localIP(), localPort);
-
+ 
         sendNTPpacket(timeServer); // send an NTP packet to a time server
         // wait to see if a reply is available
         delay(1000);
+ 
         if (udp.parsePacket()) {
-            Serial.println("udp packet received");
-            Serial.println("");
+            //Serial.println("udp packet received");
+            //Serial.println("");
             // We've received a packet, read the data from it
             udp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
-
+ 
             //the timestamp starts at byte 40 of the received packet and is four bytes,
             // or two words, long. First, extract the two words:
-
+ 
             unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
             unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
             // combine the four bytes (two words) into a long integer
@@ -74,24 +92,18 @@ unsigned long ntpHelper::getNTPtime() {
             const unsigned long seventyYears = 2208988800UL;
             // subtract seventy years:
             unsigned long epoch = secsSince1900 - seventyYears;
-#if defined ADJUST_TIME
+ 
             // adjust time for timezone offset in secs +/- from UTC
-            // WA time offset from UTC is +8 hours (28,800 secs)
-            // + East of GMT
-            // - West of GMT
-            long tzOffset = 28800UL;
-
-            // WA local time 
-            unsigned long adjustedTime;
+            long tzOffset = (UTC_OFFSET_HRS*60*60);
+ 
+                unsigned long adjustedTime;
             return adjustedTime = epoch + tzOffset;
-#else
-            return epoch;
-#endif
         }
         else {
             // were not able to parse the udp packet successfully
             // clear down the udp connection
             udp.stop();
+            Serial.println("WiFi UDP garbeled");
             return 0; // zero indicates a failure
         }
         // not calling ntp time frequently, stop releases resources
@@ -99,10 +111,12 @@ unsigned long ntpHelper::getNTPtime() {
     }
     else {
         // network not connected
+        Serial.printf("WiFi not conencted status: %d\n\r", wifi_status);
         return 0;
     }
+ 
+} //getNTPtime
 
-}
 // send an NTP request to the time server at the given address
 unsigned long ntpHelper::sendNTPpacket(const char* address) {
     // set all bytes in the buffer to 0
@@ -128,7 +142,76 @@ unsigned long ntpHelper::sendNTPpacket(const char* address) {
     return udp.endPacket();
 }
 
+#if 0
+void ntpHelper::timeUpdate(){
 
+    if ((WL_CONNECTED != wifi_status) || wifi_pwr_off) {
+        Serial.print("connectionToWiFi attempt, status: ");
+        Serial.print(wifi_status);
+        Serial.print(" pwr_off: ");
+        Serial.println(wifi_pwr_off);
+        if (wifi_pwr_off) {
+            //digitalWrite(RTL8720D_CHIP_PU, LOW); assume
+            //delay(500);
+            digitalWrite(RTL8720D_CHIP_PU, HIGH);
+            delay(500);
+            tcpip_adapter_init();
+        }
+
+        connectToWiFi(_ssid, _password);
+    }
+    // update rtc time
+    devicetime = getNTPtime();
+    lcd_clear();
+    tu_total++;
+    if (devicetime == 0) {
+        Serial.println("Failed to get time from network time server.");
+        tu_fail++;
+        now = rtc.now();
+        tft.print(tu_fail);
+        tft.println("/");
+        tft.print(tu_total);
+        tft.println(" err ");
+        String now_str(now.timestamp(DateTime::TIMESTAMP_FULL));
+        tft.println(now_str);
+    }
+    else {
+        rtc.adjust(DateTime(devicetime));
+        now = rtc.now();
+        Serial.print(tu_total);
+        Serial.print(" times/err: ");
+        Serial.print(tu_fail);
+        Serial.print(" ] Adjusted RTC time (UTC): ");
+        String now_str(now.timestamp(DateTime::TIMESTAMP_FULL));
+        Serial.println(now_str);
+        /// Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
+        tft.print("NTP ");
+        tft.println(now_str);
+        tft.print("tot ");
+        tft.print(tu_total);
+        tft.print(" err ");
+        tft.print(tu_fail);
+    }
+
+    //Turn off WiFi ~ a guess, would be nice to have an API 
+    while (!WiFi.disconnect(true) ) {
+        Serial.print("Attempting WiFi.disconnect");
+        delay(1000);
+    }
+    wifi_status=  WiFi.status();
+    if (WL_CONNECTED == wifi_status) {
+        Serial.println("WiFi not disconnected");
+    } else {
+        Serial.print("WiFi disconnected: ");
+        Serial.println(wifi_status);
+
+        digitalWrite(RTL8720D_CHIP_PU, LOW);//seeed_wio_terminal\Seeed Arduino rpcUnified\src\erpc_Unified_init.cpp
+        //delay(100);
+        //digitalWrite(RTL8720D_CHIP_PU, HIGH);
+        wifi_pwr_off = true;
+    }
+}  //timeUpdate
+#endif 
 void  ntpHelper::printWifiStatus() {
     // print the SSID of the network you're attached to:
     Serial.println("");

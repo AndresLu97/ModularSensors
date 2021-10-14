@@ -39,10 +39,11 @@ Notes:
 //https://www.forward.com.au/pfod/ArduinoProgramming/TimingDelaysInArduino.html
 #include <millisDelay.h>
 #include <Wire.h>
-#include <RTClib.h>
-//#include "RTC_SAMD51.h"
-#include <RTCZero.h>
-//#define RADIO_WIFI
+//#include <RTClib.h>
+// -D__SAMD51__ v 
+#include "RTC_SAMD51.h"
+//#include <RTCZero.h>
+#define RADIO_WIFI
 #if defined RADIO_WIFI
 #include "ntpHelper.h"
 ntpHelper ntph;
@@ -70,8 +71,9 @@ unsigned long devicetime;
 uint32_t readings_cnt =0;
 
 //RTC_DS3231 rtcPhy;
-//RTC_SAMD51 rtcPhy; .. in .h
-RTCZero zero_sleep_rtc;
+RTC_SAMD51 rtcPhy; //.. in .h
+#define zero_sleep_rtc rtcPhy
+//RTCZero zero_sleep_rtc;
 
 // for use by the Adafuit RTClib library
 //char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
@@ -101,6 +103,8 @@ uint32_t heap_start;
 #else 
 #define printFree()
 #endif //0
+
+
 void setup() {
 
     Serial.begin(115200);
@@ -130,15 +134,22 @@ void setup() {
     #endif //00
     DateTime ccTimeTZ(__DATE__, __TIME__);
     // check if rtc has lost power i.e. battery not present or flat or new device
-    //now_dt = rtcPhy.now();
-    now_dt= zero_sleep_rtc.getEpoch();
+    now_dt = rtcPhy.now();
+    //now_dt= zero_sleep_rtc.getEpoch();
+    
     if (! now_dt.isValid() ) {
         Serial.print("RTC lost power, set the time to ");
         // When time needs to be set on a new device, or after a power loss, 
         //DateTime ntp_dt(devicetime);
+        
+#if !defined RADIO_WIFI
         zero_sleep_rtc.setTime(ccTimeTZ.hour(), ccTimeTZ.minute(), ccTimeTZ.second());
-        zero_sleep_rtc.setDate(ccTimeTZ.date(), ccTimeTZ.month(), ccTimeTZ.year() - 2000);
+        zero_sleep_rtc.setDate(ccTimeTZ.day(), ccTimeTZ.month(), ccTimeTZ.year() - 2000);
+        //zero_sleep_rtc.setDate(ccTimeTZ.date(), ccTimeTZ.month(), ccTimeTZ.year() - 2000);
         now_dt = zero_sleep_rtc.getEpoch();
+#else //RADIO_WIFI
+#warning need to init rtc to compile time
+        #endif 
         //Serial.println(now_dt.timestamp(DateTime::TIMESTAMP_FULL));        
     }
     // get and print the current rtc time

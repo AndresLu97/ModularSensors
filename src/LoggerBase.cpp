@@ -60,7 +60,10 @@ volatile bool Logger::startTesting = false;
 #if defined(ARDUINO_ARCH_SAMD)
 // RTCZero internal registers based on year 2000/20yk
 // "Epoch19yk" seconds from 1900, using  "struct tm", mktime, gmtime
+#if defined __SAMD51__
+#else 
 RTCZero Logger::zero_sleep_rtc;
+#endif //__SAMD51__
 #endif
 
 #if defined USE_RTCLIB
