@@ -81,6 +81,14 @@ uint16_t _sendPacingDelay_mSec = SERIALIZE_sendPacingDelay_mSec;
 #endif  // LB_POSTMAX_NUM_DEF
     uint16_t _postMax_num = LB_POSTMAX_NUM_DEF; //See MMW_TIMER_POST_MAX_MUM_DEF    
 
+public:
+void startFixedWatchdog() {
+    //Fixed time for initialize.
+    watchDogTimer.setupWatchDog(5*60);
+    watchDogTimer.enableWatchDog();
+};
+void resetWatchdog() {watchDogTimer.resetWatchDog();}
+
 // ===================================================================== //
 // Public functions for a "reading .ini" file
 // ===================================================================== //

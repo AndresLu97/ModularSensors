@@ -1164,8 +1164,8 @@ void        Logger::systemSleep(uint8_t sleep_min) {
     // SLEEP_MODE_PWR_DOWN     -the most power savings
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
-    // Disable the watch-dog timer
-    watchDogTimer.disableWatchDog();
+    // Dont disable watch-dog timer, let the extended watchdog handle real timeout.
+    watchDogTimer.debugQuiet();  // not watchDogTimer.disableWatchDog();
 
     // Temporarily disables interrupts, so no mistakes are made when writing
     // to the processor registers

@@ -1,6 +1,5 @@
 /*****************************************************************************
-ms_cfg.h_nano - ModularSensors cfg - KellerNano MMW/WiFi
-
+ms_cfg.h_LT5_wifi  - ModularSensors Configuration - tgt _LT5 /WiFi
 Written By:  Neil Hancock www.envirodiy.org/members/neilh20/
 Development Environment: PlatformIO
 Hardware Platform(s): EnviroDIY Mayfly Arduino Datalogger+RS485 Wingboard
@@ -38,7 +37,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 
 //#define ENVIRODIY_MAYFLY_TEMPERATURE 1
 //#define Decagon_CTD_UUID 1
-//#define Insitu_TrollSdi12_UUID 1
+#define Insitu_TrollSdi12_UUID 1
 
 #define WINGBOARD_KNH002 1
 #if defined WINGBOARD_KNH002
@@ -50,7 +49,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 // KellerAcculevel units can be 1 (meter) 2 (feet)
 //#define KellerAcculevel_DepthUnits 2
 
-#define KellerNanolevel_ACT 1
+//#define KellerNanolevel_ACT 1
 #endif //WINGBOARD_KNH002
 
 //Select one of following MAYFLY_BAT_xx as the source for BatterManagement Analysis
@@ -59,9 +58,9 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define MAYFLY_BAT_CHOICE MAYFLY_BAT_STC3100
 // FUT #define MAYFLY_BAT_CHOICE  MAYFLY_BAT_DIGI
 
-#define ASONG_AM23XX_UUID 1
+//#define ASONG_AM23XX_UUID 1
 
-//One light sensors RS485 with power useage
+//Two heavy sensors with power useage
 #define BM_PWR_SENSOR_CONFIG_BUILD_SPECIFIC BM_PWR_LOW_REQ
 
 // Mayfly configuration
@@ -72,7 +71,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define MFName_DEF "Mayfly"
 #define HwVersion_DEF MFVersion_DEF
 #define HwName_DEF MFName_DEF
-#define CONFIGURATION_DESCRIPTION_STR "nano MMW/WiFi"
+#define CONFIGURATION_DESCRIPTION_STR "tu_LT5_wifi LT500"
 
 #define USE_MS_SD_INI 1
 #define USE_PS_EEPROM 1
@@ -141,13 +140,13 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define TINY_GSM_MODEM_XBEE
 
 // The APN for the gprs connection, unnecessary for WiFi
-#define APN_CDEF "VZWINTERNET"
+#define APN_CDEF "hologram"
 
 // The WiFi access point
-#define WIFIID_CDEF "AzondeTopSsid"
+#define WIFIID_CDEF "xxx"
 // NULL for none, or  password for connecting to WiFi,
-#define WIFIPWD_CDEF "Arthur8166"
-#define MMW_TIMER_POST_TIMEOUT_MS_DEF 5000L
+#define WIFIPWD_CDEF "yyy"
+#define MMW_TIMER_POST_TIMEOUT_MS_DEF 9000L
 //POST PACING ms 0-15000
 #define MMW_TIMER_POST_PACING_MS_DEF 100L
 //Post MAX Num - is num of MAX num at one go. 0 no limit
@@ -266,7 +265,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #if defined MAYFLY_BAT_STC3100
 #define STC3100_Volt_UUID "STC3100Volt_UUID"
 #define STC3100_USED1_mAhr_UUID "STC3100used1_mAhr_UUID"
-//#define STC3100_AVLBL_mAhr_UUID "STC3100avlbl_mAhr_UUID"
+#define STC3100_AVLBL_mAhr_UUID "STC3100avlbl_mAhr_UUID"
 #endif // MAYFLY_BAT_STC3100
 
 #ifdef MAYFLY_BAT_AA0

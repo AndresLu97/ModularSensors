@@ -72,6 +72,7 @@ void extendedWatchDogAVR::enableWatchDog() {
     extendedWatchDogAVR::_barksUntilReset = BARKS_UNTIL_RESET;
     MS_DBG(F("Watchdog Enabled, Interrupt will fire"), extendedWatchDogAVR::_barksUntilReset,
            F("times before the system resets."));
+    debugInfo();
 }
 
 
@@ -89,7 +90,7 @@ void extendedWatchDogAVR::resetWatchDog() {
     wdt_reset(); // Reset the watchdog.
 
     if ((int16_t)BARKS_UNTIL_RESET != extendedWatchDogAVR::_barksUntilReset) {
-        PRINTOUT (F("... Watchdog low barksUntilReset"),_barksUntilReset,F(" expected"),BARKS_UNTIL_RESET);
+        if ( extendedWatchDogAVR::_debugModeS) PRINTOUT (F("... Watchdog low barksUntilReset"),_barksUntilReset,F(" expected"),BARKS_UNTIL_RESET);
         extendedWatchDogAVR::_barksUntilReset = BARKS_UNTIL_RESET;
     }
 
@@ -110,7 +111,7 @@ ISR(WDT_vect) {
         MCUSR = 0;  // reset flags
 
         //Let anybody listening know. Not ideal to do a print in ISR ...but... woof
-        PRINTOUT(F(" **** WATCHDOG Woof Woof. Reseting Processor***"));
+        if (extendedWatchDogAVR::_debugModeS) PRINTOUT(F(" **** WATCHDOG Woof Woof. Reseting Processor***"));
         delay(100);
         // Put timer in reset-only mode:
         WDTCSR |= 0b00011000;  // Enter config mode.
@@ -127,5 +128,9 @@ ISR(WDT_vect) {
         MS_DEEP_DBG(F(" WATCHDOG ISR barksUntilReset"),extendedWatchDogAVR::_barksUntilReset);
     }
 }
+
+volatile uint8_t extendedWatchDogAVR::_debugModeS = 1;
+void extendedWatchDogAVR::debugQuiet() {extendedWatchDogAVR::_debugModeS=0;}
+void extendedWatchDogAVR::debugInfo()  {extendedWatchDogAVR::_debugModeS=1;}
 
 #endif
