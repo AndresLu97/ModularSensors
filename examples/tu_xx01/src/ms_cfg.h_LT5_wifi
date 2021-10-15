@@ -1,5 +1,5 @@
 /*****************************************************************************
-ms_cfg.h_LT5_lte  - ModularSensors Configuration - tgt _LT5 /WiFi
+ms_cfg.h_LT5_wifi  - ModularSensors Configuration - tgt _LT5 /WiFi
 Written By:  Neil Hancock www.envirodiy.org/members/neilh20/
 Development Environment: PlatformIO
 Hardware Platform(s): EnviroDIY Mayfly Arduino Datalogger+RS485 Wingboard

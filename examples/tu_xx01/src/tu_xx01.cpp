@@ -1046,7 +1046,7 @@ void unusedBitsMakeSafe() {
     // PORT_SAFE(07); SDI12
     // PORT_SAFE(08); Grn Led
     // PORT_SAFE(09); Red LED
-    PORT_SAFE(10);  //?? RTC Int
+    PORT_SAFE(10);  // Assumes hw default SJ1 goes to A7  RTC Int Pullup
     PORT_SAFE(11);
     PORT_SAFE(12);
     // mosi LED PORT_SAFE(13);
@@ -1202,6 +1202,7 @@ bool batteryCheck(bm_pwr_req_t useable_req, bool waitForGoodBattery,uint8_t dbg_
             PRINTOUT(F("---tu_xx01:Wakeup check power. Press user button to bypass"));
         }
         if (buttonPin >= 0) { UserButtonAct = digitalRead(buttonPin); }
+        dataLogger.resetWatchdog();
     } while (LiBattPower_Unseable && !UserButtonAct && waitForGoodBattery);
     return !LiBattPower_Unseable;
 }
@@ -1274,6 +1275,7 @@ void setup() {
 #endif
 
     unusedBitsMakeSafe();
+    dataLogger.startFixedWatchdog();
     readAvrEeprom();
 
     // set up for escape out of battery check if too low.
