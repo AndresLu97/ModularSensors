@@ -16,6 +16,7 @@ $dest_dir = "..\..\..\releases"
 #function touch {set-content -Path ($args[0]) -Value ($null)} 
 function Do-Build {
     $dest_file = -join($dest_dir,"\mayfly_",$config1, "_",$config2,$hext,".hex")
+    $dest_file2= -join($dest_dir,"\mayfly_",$config1, "_",$config2,$hext,".elf")
     $src_file  = -join("src\ms_cfg.h","$hext" )
 
     if (-not (Test-Path -Path $src_file)) {
@@ -29,6 +30,7 @@ function Do-Build {
         Write-host $(cmd /r dir /s .\src\ms_cfg.h )
         pio run
         move .\.pio\build\mayfly\firmware.hex  $dest_file
+        move .\.pio\build\mayfly\firmware.elf  $dest_file2
         Write-Output "**** Build Output in $dest_file"
     }
 }
