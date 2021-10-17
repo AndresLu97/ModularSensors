@@ -1195,7 +1195,12 @@ void        Logger::systemSleep(uint8_t sleep_min) {
     // Set the sleep enable bit.
     sleep_enable();
  
-    do { 
+#if defined ARDUINO_ARCH_AVR
+    //Assuming an external RTC which activates processor aka Mayfly
+    // There maybe intermediate interrupts eg Watchdog, that are ignored
+    while (digitalRead(_mcuWakePin)) //when low normal processing.
+#endif 
+    { 
         // Re-enables interrupts so we can wake up again
         interrupts();
 
@@ -1228,7 +1233,7 @@ void        Logger::systemSleep(uint8_t sleep_min) {
         // Temporarily disables interrupts, so no mistakes are made when writing
         // to the processor registers
         noInterrupts();
-    } while (digitalRead(_mcuWakePin)); //when low normal processing.
+    } 
 
     // Re-enable all power modules (ie, the processor module clocks)
     // NOTE:  This only re-enables the various clocks on the processor!
