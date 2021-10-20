@@ -247,6 +247,7 @@ void Logger::setSDCardPins(int8_t SDCardSSPin, int8_t SDCardPowerPin) {
 // Sets up the wake up pin for an RTC interrupt
 void Logger::setRTCWakePin(int8_t mcuWakePin) {
     _mcuWakePin = mcuWakePin;
+    MS_DBG(F("RTC Wake Pin= "),_mcuWakePin);
     if (_mcuWakePin >= 0) { pinMode(_mcuWakePin, INPUT_PULLUP); }
 }
 
@@ -1164,8 +1165,8 @@ void        Logger::systemSleep(uint8_t sleep_min) {
     // SLEEP_MODE_PWR_DOWN     -the most power savings
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
-    // Disable the watch-dog timer
-    watchDogTimer.disableWatchDog();
+    // Dont disable watch-dog timer, let the extended watchdog handle real timeout.
+    watchDogTimer.debugQuiet();  // not watchDogTimer.disableWatchDog();
 
     // Temporarily disables interrupts, so no mistakes are made when writing
     // to the processor registers
@@ -1193,13 +1194,19 @@ void        Logger::systemSleep(uint8_t sleep_min) {
 
     // Set the sleep enable bit.
     sleep_enable();
+ 
+#if defined ARDUINO_ARCH_AVR
+    //Assuming an external RTC which activates processor aka Mayfly
+    // There maybe intermediate interrupts eg Watchdog, that are ignored
+    while (digitalRead(_mcuWakePin)) //when low normal processing.
+#endif 
+    { 
+        // Re-enables interrupts so we can wake up again
+        interrupts();
 
-    // Re-enables interrupts so we can wake up again
-    interrupts();
-
-    // Actually put the processor into sleep mode.
-    // This must happen after the SE bit is set.
-    sleep_cpu();
+        // Actually put the processor into sleep mode.
+        // This must happen after the SE bit is set.
+        sleep_cpu();
 
 #endif
     // ---------------------------------------------------------------------
@@ -1218,14 +1225,15 @@ void        Logger::systemSleep(uint8_t sleep_min) {
 #endif
         uint32_t startTimer = millis();
         while (!SERIAL_PORT_USBVIRTUAL && ((millis() - startTimer) < 1000L)) {}
-    }
+    } 
 #endif
 
 #if defined ARDUINO_ARCH_AVR
 
-    // Temporarily disables interrupts, so no mistakes are made when writing
-    // to the processor registers
-    noInterrupts();
+        // Temporarily disables interrupts, so no mistakes are made when writing
+        // to the processor registers
+        noInterrupts();
+    } 
 
     // Re-enable all power modules (ie, the processor module clocks)
     // NOTE:  This only re-enables the various clocks on the processor!

@@ -85,6 +85,13 @@ class extendedWatchDogAVR {
 
  private:
     uint32_t _resetTime_s;
+ 
+ public:
+
+    static volatile uint8_t _debugModeS; //1 for listing, 0 for no listing
+    void debugQuiet() ;
+    void debugInfo() ;
+
 };
 
 #endif  // SRC_WATCHDOGS_WATCHDOGAVR_H_
