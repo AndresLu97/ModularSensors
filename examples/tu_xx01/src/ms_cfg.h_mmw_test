@@ -143,13 +143,13 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define TINY_GSM_MODEM_XBEE
 
 // The APN for the gprs connection, unnecessary for WiFi
-#define APN_CDEF "hologram"
+#define APN_CDEF "VZWINTERNET"
 
-// The WiFi access point
-#define WIFIID_CDEF "xxx"
+// The WiFi access point  never set to real, as should be set by config.
+#define WIFIID_CDEF "WiFiIdDef"
 // NULL for none, or  password for connecting to WiFi,
-#define WIFIPWD_CDEF "yyy"
-#define MMW_TIMER_POST_TIMEOUT_MS_DEF 7000L
+#define WIFIPWD_CDEF "WiFiPwdDef"
+#define MMW_TIMER_POST_TIMEOUT_MS_DEF 5000L
 //POST PACING ms 0-15000
 #define MMW_TIMER_POST_PACING_MS_DEF 100L
 //Post MAX Num - is num of MAX num at one go. 0 no limit
