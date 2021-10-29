@@ -63,7 +63,7 @@ const char git_branch[] = ".";
 #endif
 /** Start [logging_options] */
 // The name of this program file
-const char* sketchName = "simple_logging.ino";
+//const char* sketchName = "simple_logging.ino";
 // Logger ID, also becomes the prefix for the name of the data file on SD card
 const char* LoggerID = LOGGERID_DEF_STR;
 const char* configIniID_def   = configIniID_DEF_STR;
@@ -89,6 +89,14 @@ const int8_t sdCardSSPin    = 12;  // SD card chip select/slave select pin
 const int8_t sensorPowerPin = 22;  // MCU pin controlling main sensor power
 /** End [logging_options] */
 
+// ==========================================================================
+//     Local storage - evolving
+// ==========================================================================
+#ifdef USE_MS_SD_INI
+//tbd
+persistent_store_t ps_ram;
+#define epc ps_ram
+#endif  //#define USE_MS_SD_INI
 
 // ==========================================================================
 //  Using the Processor as a Sensor
@@ -171,6 +179,10 @@ Logger dataLogger;
 //  Working Functions
 // ==========================================================================
 /** Start [working_functions] */
+//tbd
+//#define SerialStd Serial
+//#include "iniHandler.h"
+
 // Flashes the LED's on the primary board
 void greenredflash(uint8_t numFlash = 4, uint8_t rate = 75) {
     for (uint8_t i = 0; i < numFlash; i++) {
