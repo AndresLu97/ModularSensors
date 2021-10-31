@@ -93,7 +93,6 @@ const int8_t sensorPowerPin = 22;  // MCU pin controlling main sensor power
 //     Local storage - evolving
 // ==========================================================================
 #ifdef USE_MS_SD_INI
-//tbd
 persistent_store_t ps_ram;
 #define epc ps_ram
 #endif  //#define USE_MS_SD_INI
@@ -102,11 +101,13 @@ persistent_store_t ps_ram;
 //  Using the Processor as a Sensor
 // ==========================================================================
 /** Start [processor_sensor] */
+#include <BatteryManagement.h>
+BatteryManagement bms;
 #include <sensors/ProcessorStats.h>
 
 // Create the main processor chip "sensor" - for general metadata
 const char*    mcuBoardVersion = "v0.5b";
-ProcessorStats mcuBoard(mcuBoardVersion);
+ProcessorStats mcuBoardPhy(mcuBoardVersion);
 /** End [processor_sensor] */
 
 
@@ -134,6 +135,121 @@ AnalogElecConductivityM analogEC_phy(ECpwrPin, ECdataPin1, EC_RELATIVE_OHMS);
 /** End [AnalogElecConductivity] */
 #endif  // AnalogProcEC_ACT
 
+//#ifdef MAYFLY_BAT_AA0
+#if defined ExternalVoltage_Volt0_UUID
+// ==========================================================================
+//    External Voltage via TI ADS1115
+// ==========================================================================
+#include <sensors/ExternalVoltage.h>
+
+const int8_t ADSPower = 1;     // sensorPowerPin;  // Pin to switch power on and
+                               // off (-1 if unconnected)
+const int8_t ADSChannel0 = 0;  // The ADS channel of interest
+const int8_t ADSChannel1 = 1;  // The ADS channel of interest
+const int8_t ADSChannel2 = 2;  // The ADS channel of interest
+const int8_t ADSChannel3 = 3;  // The ADS channel of interest
+const float  dividerGain = 11;  // Gain RevR02 1/Gain 1M+100K
+// The Mayfly is modified for ECN R04 or divide by 11
+// Vbat is expected to be 3.2-4.2, so max V to ads is 0.38V,
+// Practically the defaule GAIN_ONE for ADS1115 provide the best performance.
+// 2020Nov13 Characterizing the ADS1115 for different gains seems to fall far
+// short of the datasheet. Very frustrating.
+
+const uint8_t ADSi2c_addr    = 0x48;  // The I2C address of the ADS1115 ADC
+const uint8_t VoltReadsToAvg = 1;     // Only read one sample stable input
+
+// Create an External Voltage sensor object
+ExternalVoltage extvolt_AA0(ADSPower, ADSChannel0, dividerGain, ADSi2c_addr,
+                         VoltReadsToAvg);
+// ExternalVoltage extvolt1(ADSPower, ADSChannel1, dividerGain, ADSi2c_addr,
+// VoltReadsToAvg); special Vcc 3.3V
+
+//#define PRINT_EXTADC_BATV_VAR
+#if defined PRINT_EXTADC_BATV_VAR
+bool userPrintExtBatV_avlb=false;
+#endif  // PRINT_EXTADC_BATV_VAR
+// Create a capability to read the battery Voltage asynchronously,
+// and have that voltage used on logging event
+Variable* varExternalVoltage_Volt = new ExternalVoltage_Volt(&extvolt_AA0, "NotUsed");
+
+
+float wLionBatExt_worker(void) {  // get the Battery Reading
+    // Get new reading
+   float flLionBatExt_V = varExternalVoltage_Volt->getValue(true);
+    // float depth_ft = convert_mtoFt(depth_m);
+    // MS_DBG(F("wLionBatExt_worker"), flLionBatExt_V);
+#if defined MS_TU_XX_DEBUG
+    DEBUGGING_SERIAL_OUTPUT.print(F("  wLionBatExt_worker "));
+    DEBUGGING_SERIAL_OUTPUT.print(flLionBatExt_V, 4);
+    DEBUGGING_SERIAL_OUTPUT.println();
+#endif  // MS_TU_XX_DEBUG
+#if defined PRINT_EXTADC_BATV_VAR
+    if (userPrintExtBatV_avlb) {
+        userPrintExtBatV_avlb = false;
+        STANDARD_SERIAL_OUTPUT.print(F("  LiionBatExt(V) "));
+        STANDARD_SERIAL_OUTPUT.print(flLionBatExt_V, 4);
+        STANDARD_SERIAL_OUTPUT.println();       
+    }
+#endif  // PRINT_EXTADC_BATV_VAR
+    return flLionBatExt_V;
+}
+float getLionBatExt_V(void) {
+    return varExternalVoltage_Volt->getValue(false);
+}
+// Setup the object that does the operation
+Variable* pLionBatExt_var =
+    new Variable(wLionBatExt_worker,  // function that does the calculation
+                 4,                    // resolution
+                 "batteryVoltage",     // var name. This must be a value from
+                                    // http://vocabulary.odm2.org/variablename/
+                 "volts",  // var unit. This must be a value from This must be a
+                           // value from http://vocabulary.odm2.org/units/
+                 "extVolt0",  // var code
+                 ExternalVoltage_Volt0_UUID);
+#endif  // MAYFLY_BAT_AA0
+
+#if defined MAYFLY_BAT_CHOICE
+#if MAYFLY_BAT_CHOICE == MAYFLY_BAT_STC3100
+#define bms_SetBattery() bms.setBatteryV(wLionBatStc3100_worker());
+#elif MAYFLY_BAT_CHOICE == MAYFLY_BAT_AA0 
+// Need for internal battery 
+#define bms_SetBattery() bms.setBatteryV(wLionBatExt_worker());
+#elif  MAYFLY_BAT_CHOICE == MAYFLY_BAT_A6
+#warning need to test mcuBoardPhy, interface 
+// Read's the battery voltage
+// NOTE: This will actually return the battery level from the previous update!
+float getBatteryVoltageProc() {
+    if (mcuBoardPhy.sensorValues[0] == PS_SENSOR_INVALID) mcuBoardPhy.update();
+    return mcuBoardPhy.sensorValues[0];
+}
+#define bms_SetBattery() bms.setBatteryV(getBatteryVoltageProc());
+#endif  //MAYFLY_BAT_A6
+#else 
+#warning MAYFLY_BAT_CHOICE not defined
+//Leave battery settings at default or off
+#define bms_SetBattery()
+#endif  //defined MAYFLY_BAT_CHOICE
+#if defined ProcVolt_ACT
+// ==========================================================================
+//    Internal  ProcessorAdc
+// ==========================================================================
+#include <sensors/processorAdc.h>
+const int8_t  procVoltPower      = -1;
+const uint8_t procVoltReadsToAvg = 1;  // Only read one sample
+
+#if defined ARDUINO_AVR_ENVIRODIY_MAYFLY
+// Only support Mayfly rev5 10M/2.7M &  10bit ADC (3.3Vcc / 1023)
+const int8_t sensor_Vbatt_PIN    = A6;
+const float  procVoltDividerGain = 4.7;
+#else
+#error define other processors ADC pins here
+#endif  //
+processorAdc sensor_batt_V(procVoltPower, sensor_Vbatt_PIN, procVoltDividerGain,
+                           procVoltReadsToAvg);
+// processorAdc sensor_V3v6_V(procVoltPower, sensor_V3V6_PIN,
+// procVoltDividerGain, procVoltReadsToAvg);
+
+#endif  // ProcVolt_ACT
 // ==========================================================================
 //    Settings for Additional Sensors
 // ==========================================================================
@@ -151,8 +267,8 @@ AnalogElecConductivityM analogEC_phy(ECpwrPin, ECdataPin1, EC_RELATIVE_OHMS);
 // ==========================================================================
 /** Start [variable_arrays] */
 Variable* variableList[] = {
-    new ProcessorStats_SampleNumber(&mcuBoard),
-    new ProcessorStats_Battery(&mcuBoard), new MaximDS3231_Temp(&ds3231),
+    new ProcessorStats_SampleNumber(&mcuBoardPhy),
+    new ProcessorStats_Battery(&mcuBoardPhy), new MaximDS3231_Temp(&ds3231),
     #if defined AnalogProcEC_ACT
     // Do Analog processing measurements.
     new AnalogElecConductivityM_EC(&analogEC_phy, EC1_UUID),
@@ -174,14 +290,59 @@ VariableArray varArray;
 Logger dataLogger;
 /** End [loggers] */
 
+#if defined MS_TTY_USER_INPUT
+// ==========================================================================
+bool userButton1Act = false;
+void userButtonISR() {
+    //Need setting up to actiavted by appropiate buttonPin
+    MS_DBG(F("ISR userButton!"));
+    if (digitalRead(buttonPin)) {
+        userButton1Act =true;
+    } 
+
+} //userButtonISR
+
+// ==========================================================================
+ void setupUserButton () {
+    if (buttonPin >= 0) {
+        pinMode(buttonPin, INPUT_PULLUP);
+        enableInterrupt(buttonPin, userButtonISR, CHANGE);
+        MS_DBG(F("Button on pin"), buttonPin,
+               F("user input."));
+    }
+} // setupUserButton
+#include "tu_serialCmd.h"
+#else 
+#define setupUserButton()
+
+#if defined MS_TTY_SERIAL_COUNT
+
+long ch_count_tot=0; 
+uint8_t serialInputCount() 
+{
+    //char incoming_ch;
+    uint8_t ch_count_now=0;
+ 
+    //Read any input queue
+    while (Serial.available()) {
+        //incoming_ch = 
+        Serial.read();
+        if (++ch_count_now > 250) break;
+    }
+    ch_count_tot+=ch_count_now;
+
+    return ch_count_now;
+}
+#endif // MS_TTY_SERIAL_COUNT
+#endif //MS_TTY_USER_INPUT
 
 // ==========================================================================
 //  Working Functions
 // ==========================================================================
 /** Start [working_functions] */
 //tbd
-//#define SerialStd Serial
-//#include "iniHandler.h"
+#define SerialStd Serial
+#include "iniHandler.h"
 
 // Flashes the LED's on the primary board
 void greenredflash(uint8_t numFlash = 4, uint8_t rate = 75) {
@@ -231,15 +392,20 @@ void setup() {
     // Blink the LEDs to show the board is on and starting up
     greenredflash();
 
-    // Set the timezones for the logger/data and the RTC
-    // Logging in the given time zone
-    Logger::setLoggerTimeZone(timeZone);
-    // It is STRONGLY RECOMMENDED that you set the RTC to be in UTC (UTC+0)
-    Logger::setRTCTimeZone(0);
+    dataLogger.setLoggerPins(wakePin, sdCardSSPin, sdCardPwrPin, -1, greenLED);
+    setupUserButton(); //used for serialInput
 
-    // Set information pins
-    dataLogger.setLoggerPins(wakePin, sdCardSSPin, sdCardPwrPin, buttonPin,
-                             greenLED);
+#ifdef USE_MS_SD_INI
+    // Set up SD card access
+    PRINTOUT(F("---parseIni Start"));
+    dataLogger.setPs_cache(&ps_ram);
+    dataLogger.parseIniSd(configIniID_def, inihUnhandledFn);
+    epcParser(); //use ps_ram to update classes
+    PRINTOUT(F("---parseIni complete\n"));
+#endif  // USE_MS_SD_INI
+
+    //set the RTC to be in UTC (UTC+0)
+    Logger::setRTCTimeZone(0);
 
     // Begin the variable array[s], logger[s], and publisher[s]
     varArray.begin(variableCount, variableList);
