@@ -376,7 +376,7 @@ static void epcParser() {
 
 /* A short string size checker*/
 #define eCpy(parm1,parm2) chkLen(parm1,value,parm2)
-static bool chkLen(char *destStr, const char *value,int size) {
+__attribute__((unused)) static bool chkLen(char *destStr, const char *value,int size) {
     int value_len = strlen(value);
     bool ret_val;
     if (value_len > size-1) {

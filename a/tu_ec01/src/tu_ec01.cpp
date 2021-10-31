@@ -50,7 +50,6 @@
 #include "ms_common.h"
 /** End [includes] */
 
-
 // ==========================================================================
 //  Data Logging Options
 // ==========================================================================
@@ -68,26 +67,9 @@ const char git_branch[] = ".";
 const char* LoggerID = LOGGERID_DEF_STR;
 const char* configIniID_def   = configIniID_DEF_STR;
 const char* configDescription = CONFIGURATION_DESCRIPTION_STR;
-// How frequently (in minutes) to log data
-const uint8_t loggingInterval = 15;
-// Your logger's timezone.
-const int8_t timeZone = -8;  // PST
-// NOTE:  Only supports standard time! Daylight savings varies from year2year
 
-// Set the input and output pins for the logger
-// NOTE:  Use -1 for pins that do not apply
-const int32_t serialBaud = 115200;  // Baud rate for debugging
-const int8_t  greenLED   = 8;       // Pin for the green LED
-const int8_t  redLED     = 9;       // Pin for the red LED
-const int8_t  buttonPin  = 21;      // Pin for debugging mode (ie, button pin)
-const int8_t  wakePin    = 31;  // MCU interrupt/alarm pin to wake from sleep
-// Mayfly 0.x D31 = A7
-// Set the wake pin to -1 if you do not want the main processor to sleep.
-// In a SAMD system where you are using the built-in rtc, set wakePin to 1
-const int8_t sdCardPwrPin   = -1;  // MCU SD card power pin
-const int8_t sdCardSSPin    = 12;  // SD card chip select/slave select pin
-const int8_t sensorPowerPin = 22;  // MCU pin controlling main sensor power
-/** End [logging_options] */
+// How frequently (in minutes) to log data
+const uint8_t loggingIntervaldef = loggingInterval_CDEF_MIN;
 
 // ==========================================================================
 //     Local storage - evolving
@@ -97,6 +79,7 @@ persistent_store_t ps_ram;
 #define epc ps_ram
 #endif  //#define USE_MS_SD_INI
 
+
 // ==========================================================================
 //  Using the Processor as a Sensor
 // ==========================================================================
@@ -105,6 +88,18 @@ persistent_store_t ps_ram;
 BatteryManagement bms;
 #include <sensors/ProcessorStats.h>
 
+// NOTE:  Use -1 for pins that do not apply
+const int32_t serialBaud = 115200;  // Baud rate for debugging
+const int8_t  greenLED   = 8;       // Pin for the green LED
+const int8_t  redLED     = 9;       // Pin for the red LED
+const int8_t  buttonPin  = 21;      // Pin for debugging mode (ie, button pin)
+const int8_t  wakePin    = 31;  // MCU interrupt/alarm pin to wake from sleep
+// Set the wake pin to -1 if you do not want the main processor to sleep.
+// In a SAMD system where you are using the built-in rtc, set wakePin to 1
+const int8_t sdCardPwrPin   = -1;  // MCU SD card power pin
+const int8_t sdCardSSPin    = 12;  // SD card chip select/slave select pin
+const int8_t sensorPowerPin = 22;  // MCU pin controlling main sensor power
+/** End [logging_options] */
 // Create the main processor chip "sensor" - for general metadata
 const char*    mcuBoardVersion = "v0.5b";
 ProcessorStats mcuBoardPhy(mcuBoardVersion);
@@ -250,6 +245,7 @@ processorAdc sensor_batt_V(procVoltPower, sensor_Vbatt_PIN, procVoltDividerGain,
 // procVoltDividerGain, procVoltReadsToAvg);
 
 #endif  // ProcVolt_ACT
+
 // ==========================================================================
 //    Settings for Additional Sensors
 // ==========================================================================
@@ -269,10 +265,14 @@ processorAdc sensor_batt_V(procVoltPower, sensor_Vbatt_PIN, procVoltDividerGain,
 Variable* variableList[] = {
     new ProcessorStats_SampleNumber(&mcuBoardPhy),
     new ProcessorStats_Battery(&mcuBoardPhy), new MaximDS3231_Temp(&ds3231),
-    #if defined AnalogProcEC_ACT
+#if defined AnalogProcEC_ACT
     // Do Analog processing measurements.
     new AnalogElecConductivityM_EC(&analogEC_phy, EC1_UUID),
 #endif  // AnalogProcEC_ACT
+
+#if defined(ExternalVoltage_Volt1_UUID)
+    new ExternalVoltage_Volt(&extvolt1, ExternalVoltage_Volt1_UUID),
+#endif
 };
 // Count up the number of pointers in the array
 int variableCount = sizeof(variableList) / sizeof(variableList[0]);
@@ -409,7 +409,7 @@ void setup() {
 
     // Begin the variable array[s], logger[s], and publisher[s]
     varArray.begin(variableCount, variableList);
-    dataLogger.begin(LoggerID, loggingInterval, &varArray);
+    dataLogger.begin(LoggerID, loggingIntervaldef, &varArray);
 
     // Set up the sensors
     Serial.println(F("Setting up sensors..."));

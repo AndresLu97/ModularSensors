@@ -73,14 +73,12 @@ const char git_branch[] = ".";
 #endif
 
 // Logger ID, also becomes the prefix for the name of the data file on SD card
-// const char *LoggerID = "TU001";
 const char* LoggerID          = LOGGERID_DEF_STR;
 const char* configIniID_def   = configIniID_DEF_STR;
 const char* configDescription = CONFIGURATION_DESCRIPTION_STR;
 
 // How frequently (in minutes) to log data
 const uint8_t loggingIntervaldef = loggingInterval_CDEF_MIN;
-// Your logger's timezone.
 
 // ==========================================================================
 //     Local storage - evolving
