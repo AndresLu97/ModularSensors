@@ -1,11 +1,14 @@
 [//]: # ( @page example_simple_logging Simple Logging Example )
-# Using ModularSensors to save data to an SD card
+# Electrical Conductivity - saving data to an SD card  alpha version
 
-This shows the simplest use of a "logger" object.
-That is, creating an array of variable objects and then creating a logger object that utilizes those variables to update all of the variable results together and save the data to a SD card.
-The processor then goes to sleep between readings.
+This is an "alpha" version located in ModularSensors\a\tu_ec01 as the PlatformIo setup, 
+and allows editing of code in the Modular/src/.. directories as well as the
+ModularSensors\a\tu_ec01.   
+The "alpha" configuration is defined in ModularSensors\a\tu_ec01\platformio.ini.
 
-This is the example you should use to deploy a logger somewhere where you don't want or have access to a way of streaming live data and you won't want to upload data to the Monitor My Watershed data portal.
+This measures Electrical Conductivity and saves it to the SD card..
+
+The time needs to be configured. 
 
 _______
 
@@ -28,29 +31,51 @@ _______
 - Only logs data to an SD card.
 
 [//]: # ( @section example_simple_logging_using To Use this Example: )
-# To Use this Example:
+# To Build this program:
 
 [//]: # ( @subsection example_simple_logging_pio Prepare and set up PlatformIO )
 ## Prepare and set up PlatformIO
-- Create a new PlatformIO project
-- Replace the contents of the platformio.ini for your new project with the [platformio.ini](https://raw.githubusercontent.com/EnviroDIY/ModularSensors/master/examples/simple_logging/platformio.ini) file in the examples/simple_logging folder on GitHub.
-    - It is important that your PlatformIO configuration has the lib_ldf_mode and build flags set as they are in the example.
-    - Without this, the program won't compile.
-- Open [simple_logging.ino](https://raw.githubusercontent.com/EnviroDIY/ModularSensors/master/examples/simple_logging/simple_logging.ino) and save it to your computer.  Put it into the src directory of your project.
-    - Delete main.cpp in that folder.
+- Ensure PlatformIO project is setup
+- From PlatformIO, go to File Folder and open top level of project ModularSensors\a\tu_ec01
+
 
 [//]: # ( @subsection example_simple_logging_logger_id Set the logger ID )
-## Set the logger ID
-- Change the "XXXX" in this section of code to the loggerID assigned by Stroud:
+## Setup per logger configuration
+- Open D:\usr\a\Documents\Arduino\env03\ModularSensors\a\tu_ec01\src\ini_opts\ms_cfg.ini, 
+- change the values to represent your logger.
 
 ```cpp
-// Logger ID, also becomes the prefix for the name of the data file on SD card
-const char *LoggerID = "XXXX";
+[COMMON]
+;This section required. Max 80 active chars, not including after any ;
+LOGGER_ID =FOP_EC01 ;Auto Site Reference
+LOGGING_INTERVAL_MINUTES=15
+LIION_TYPE = 3 ;0=Any 1=LiIon0.5A 2=1AH 3=LiSOCL2 4=3Leclanche
+TIME_ZONE=-8  ; -12 to +12
+GEOGRAPHICAL_ID="SSU FOP EC DemoCreek#02 Monitor" 
 ```
 
-[//]: # ( @subsection example_simple_logging_upload Upload! )
+## Configure Mayfly EEPROM
+Two ms_cfg.iniX files can program the EEPROM.
+if an ms_cfg.ini0 or ms_cfg.ini1 is detected they are read, and values operated on,
+then the file is renamed with "run" appended so it is only acted on once.
+For ms_cfg.ini0 it is read, acted on, then renamed to ms_cfg.ini0run
+For ms_cfg.ini1 it is read, acted on, then renamed to ms_cfg.ini1run
+ 
+- to permanently configure in the EEPROM, including board information
+- modify ms_cfg.ini0 with [BOOT] section enabled
+- modify/create ms_cfg.ini1 with no [BOOT] and the following enabled.
+  [USER]
+  ACTION=WRITE ; Last Operation
+
+- Typically for ms_cfg.ini1, 
+  copy the core ms_cfg.ini to ms_cfg.ini1
+  then enable 
+  [USER]
+  ACTION=WRITE ; Last Operation
+
+
 ## Upload!
-- Test everything at home **before** deploying out in the wild!
+- Test everything at the office **before** deploying out in the wild!
 
 _______
 
