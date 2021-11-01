@@ -384,14 +384,14 @@ void setup() {
     Serial.println(MODULAR_SENSORS_VERSION);
 
     dataLogger.startFixedWatchdog();
-    // Set up pins for the LED's
+    // Set up pins for the LED's - LOW is ON
     pinMode(greenLED, OUTPUT);
     digitalWrite(greenLED, LOW);
     pinMode(redLED, OUTPUT);
     digitalWrite(redLED, LOW);
     // Blink the LEDs to show the board is on and starting up
     greenredflash();
-
+    
     dataLogger.setLoggerPins(wakePin, sdCardSSPin, sdCardPwrPin, -1, greenLED);
     setupUserButton(); //used for serialInput
 
