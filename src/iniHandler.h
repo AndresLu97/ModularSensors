@@ -1103,6 +1103,10 @@ void readAvrEeprom() {
                  (const char*)F("enviroDIY mayfly"));
         strcpy_P((char*)epc.hw_boot.serial_num,
                  (const char*)F("M123456789abcdefgh"));
+        #if !defined HW_BOOT_REV_DEF
+            //#define HW_BOOT_REV_DEF "1.0a" tbd
+            #define HW_BOOT_REV_DEF "0.5b"
+        #endif 
         strcpy_P((char*)epc.hw_boot.rev, (const char*)F("0.5b"));
         // strcpy_P((char *)epc.hw_boot.sd_boot_ini,(const char
         // *)F("ms_cfg.ini"));

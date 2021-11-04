@@ -190,8 +190,16 @@ StreamDebugger modemDebugger(modemSerial, STANDARD_SERIAL_OUTPUT);
 #endif  // STREAMDEBUGGER_DBG
 
 // Modem Pins - Describe the physical pin connection of your modem to your board
+#if defined  MS_MAYLFY_1A3
+ // MCU pin controlling modem power --- Pin 18 is the power enable pin for the bee socket on Mayfly v1.0,
+const int8_t modemVccPin = -1;   
+// kuldge to always switch on modemVccPwrSwPin Issue #79
+const int8_t modemVccPwrSwPin = 18;
+#else 
+ //  use -1 if using Mayfly 0.5b or if the bee socket is constantly powered (ie you changed SJ18 on Mayfly1.0 to 3.3v)
 const int8_t modemVccPin =
     -2;  // MCU pin controlling modem power (-1 if not applicable)
+#endif //MS_MAYLFY_1A3
 const int8_t modemStatusPin =
     19;  // MCU pin used to read modem status (-1 if not applicable)
 const int8_t modemResetPin = -1;//20? MCU modem reset pin (-1 if unconnected)
@@ -1279,7 +1287,16 @@ void setup() {
     unusedBitsMakeSafe();
     dataLogger.startFixedWatchdog();
     readAvrEeprom();
-
+#if defined USE_PS_HW_BOOT
+    //Print sames as .csv header, used in LoggerBaseExtCpp.h 
+    Serial.print(F("Board: "));
+    Serial.print((char*)epc.hw_boot.board_name);
+    Serial.print(F(" rev:'"));
+    Serial.print((char*)epc.hw_boot.rev);
+    Serial.print(F("' sn:'"));
+    Serial.print((char*)epc.hw_boot.serial_num);
+    Serial.println(F("'"));
+#endif  // USE_PS_HW_BOOT
     // set up for escape out of battery check if too low.
     // If buttonPress then exit.
     // Button is read inactive as low
@@ -1371,6 +1388,13 @@ void setup() {
     dataLogger.setSamplingFeatureUUID(None_STR);
 #endif  // UseModem_PushData
     // Attach the modem and information pins to the logger
+    if (modemVccPwrSwPin > -1) {
+        //For Mayfly1.0 turn on power 
+        // Kludge to allow testing
+        pinMode(modemVccPwrSwPin , OUTPUT);
+        digitalWrite(modemVccPwrSwPin, HIGH); //On
+        PRINTOUT(F("---pwr Xbee ON"));
+    } 
     dataLogger.attachModem(modemPhy);
     modemPhy.modemHardReset(); //Ensure in known state ~ 5mS
 
