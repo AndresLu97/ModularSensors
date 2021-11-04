@@ -55,6 +55,7 @@ void loop(void)
 
   elapsed_time_sec++;
   Serial.print("Time"); Serial.println(elapsed_time_sec);
+  
   if (PowerState) {
     digitalWrite(powerPin, LOW);
     digitalWrite(greenLED, LOW);
