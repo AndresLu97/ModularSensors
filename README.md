@@ -32,6 +32,7 @@ The ModularSensors library is specifically designed to support wireless, solar-p
 * Specific development stream in ModularSensors\a\.. directories (Mayfly and other ARM SAMDx boards) 
 
 To use, from the IDE Platformio (platformio.org) open folder ModularSensors\a\<select a folder> - and press icon "Build" (the tick mark), then download to the target.   
+(More detail at https://envirodiy.github.io/LearnEnviroDIY/04-GetPlatformIO/index.html)
 tbd - download a prebuilt image   
 This is an open source fork of https://github.com/EnviroDIY/ModularSensors   
 EnviroDIY/ModularSensors is a comprehensive package that covers a number of boards and example usages. Its the recommended starting point for anybody new to ModularSensors, its assumed you read the excellent https://github.com/EnviroDIY/ModularSensors/blob/master/README.md
