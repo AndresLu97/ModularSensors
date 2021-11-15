@@ -138,7 +138,7 @@ class EnviroDIYPublisher : public dataPublisher {
 
     // Returns the data destination
     String getEndpoint(void) override {
-        return String(enviroDIYHost);
+        return String(_enviroDIYHost);
     }
 
     // Adds the site registration token
@@ -225,7 +225,7 @@ class EnviroDIYPublisher : public dataPublisher {
      * @{
      */
     static const char* postEndpoint;   ///< The endpoint
-    static const char* enviroDIYHost;  ///< The host name
+    static const char* enviroDIYHostDef;  ///< The host name
     static const int   enviroDIYPort;  ///< The host port
     static const char* tokenHeader;    ///< The token header text
     // static const char *cacheHeader;  ///< The cache header text
@@ -247,6 +247,25 @@ class EnviroDIYPublisher : public dataPublisher {
  private:
     // Tokens and UUID's for EnviroDIY
     const char* _registrationToken;
+    const char* _enviroDIYHost;
+    //FUT: int   _enviroDIYPort;
+
+ public:
+     /**
+     * @brief Set the destination Host URL
+     *
+     * @param enviroDIYHost The Host URL for the site on the
+     * Monitor My Watershed data portal.
+     */
+    void setDIYHost(const char* enviroDIYHost);
+
+    /* FUT:
+     * @brief Set the destination Port
+     *
+     * @param enviroDIYPort The Port on Host URL for the site on the
+     * Monitor My Watershed data portal.
+     */
+    //void setDIYPort(const int enviroDIYPort);
 
  protected:
     /**

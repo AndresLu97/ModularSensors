@@ -1433,6 +1433,7 @@ void setup() {
     EnviroDIYPOST.begin(dataLogger, &modemPhy.gsmClient,
                         ps_ram.app.provider.s.ed.registration_token,
                         ps_ram.app.provider.s.ed.sampling_feature);
+    EnviroDIYPOST.setDIYHost(ps_ram.app.provider.s.ed.cloudId);
     EnviroDIYPOST.setQuedState(true);
     EnviroDIYPOST.setTimerPostTimeout_mS(ps_ram.app.provider.s.ed.timerPostTout_ms);
     EnviroDIYPOST.setTimerPostPacing_mS(ps_ram.app.provider.s.ed.timerPostPace_ms);

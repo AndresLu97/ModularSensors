@@ -239,6 +239,7 @@ typedef struct {
     // v01 initial structure
     // All are in ascii strings, with the first unused octet \0
     char    cloudId[PROVID_CLOUD_ID_SZ];  // ASCII url
+    //FUT int cloudPort
     char    registration_token[PROVID_MW_REGISTRATION_TOKEN_SZ];
     char    sampling_feature[PROVID_MW_SAMPLING_FEAUTRE_SZ];
     uint16_t timerPostTout_ms; // Gateway Timeout (ms)
