@@ -35,7 +35,7 @@ jobs:
           pip install --upgrade platformio
 
       - name: Restore or Cache PlatformIO and Libraries
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         id: cache_pio
         with:
           path: ~/.platformio
@@ -58,7 +58,7 @@ jobs:
 
       - name: Restore or Cache Doxygen
         id: cache_doxygen
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: doxygen-src
           key: ${{ runner.os }}-doxygen-${{ env.DOXYGEN_VERSION }}
