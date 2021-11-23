@@ -188,11 +188,13 @@
  * @brief The possible types of DHT
  */
 typedef enum DHTtype {
-    DHT11  = 11,
-    DHT21  = 21,
-    AM2301 = 21,
-    DHT22  = 22,
-    AM2302 = 22
+    // should match values in DHT.h, but can have same names
+    eDHT11  = 11,
+    eDHT12  = 12,
+    eDHT21  = 21,
+    eAM2301 = 21,
+    eDHT22  = 22,
+    eAM2302 = 22
 } DHTtype;
 
 /* clang-format off */

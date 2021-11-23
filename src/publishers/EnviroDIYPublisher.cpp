@@ -18,7 +18,7 @@
 // I want to refer to these more than once while ensuring there is only one copy
 // in memory
 const char* EnviroDIYPublisher::postEndpoint  = "/api/data-stream/";
-const char* EnviroDIYPublisher::enviroDIYHost = "data.envirodiy.org";
+const char* EnviroDIYPublisher::enviroDIYHostDef = "data.envirodiy.org";
 const int   EnviroDIYPublisher::enviroDIYPort = 80;
 const char* EnviroDIYPublisher::tokenHeader   = "\r\nTOKEN: ";
 // const unsigned char *EnviroDIYPublisher::cacheHeader = "\r\nCache-Control:
@@ -36,17 +36,20 @@ const char* EnviroDIYPublisher::timestampTag       = "\",\"timestamp\":\"";
 EnviroDIYPublisher::EnviroDIYPublisher() : dataPublisher() {
     // MS_DBG(F("dataPublisher object created"));
     _registrationToken = NULL;
+    setDIYHost(enviroDIYHostDef);
 }
 EnviroDIYPublisher::EnviroDIYPublisher(Logger& baseLogger, uint8_t sendEveryX,
                                        uint8_t sendOffset)
     : dataPublisher(baseLogger, sendEveryX, sendOffset) {
     // MS_DBG(F("dataPublisher object created"));
     _registrationToken = NULL;
+    setDIYHost(enviroDIYHostDef);
 }
 EnviroDIYPublisher::EnviroDIYPublisher(Logger& baseLogger, Client* inClient,
                                        uint8_t sendEveryX, uint8_t sendOffset)
     : dataPublisher(baseLogger, inClient, sendEveryX, sendOffset) {
     // MS_DBG(F("dataPublisher object created"));
+    setDIYHost(enviroDIYHostDef);
 }
 EnviroDIYPublisher::EnviroDIYPublisher(Logger&     baseLogger,
                                        const char* registrationToken,
@@ -54,6 +57,7 @@ EnviroDIYPublisher::EnviroDIYPublisher(Logger&     baseLogger,
                                        uint8_t sendEveryX, uint8_t sendOffset)
     : dataPublisher(baseLogger, sendEveryX, sendOffset) {
     setToken(registrationToken);
+    setDIYHost(enviroDIYHostDef);
     _baseLogger->setSamplingFeatureUUID(samplingFeatureUUID);
     // MS_DBG(F("dataPublisher object created"));
 }
@@ -63,6 +67,7 @@ EnviroDIYPublisher::EnviroDIYPublisher(Logger& baseLogger, Client* inClient,
                                        uint8_t sendEveryX, uint8_t sendOffset)
     : dataPublisher(baseLogger, inClient, sendEveryX, sendOffset) {
     setToken(registrationToken);
+    setDIYHost(enviroDIYHostDef);
     _baseLogger->setSamplingFeatureUUID(samplingFeatureUUID);
     // MS_DBG(F("dataPublisher object created"));
 }
@@ -153,7 +158,7 @@ void EnviroDIYPublisher::printEnviroDIYRequest(Stream* stream) {
     stream->print(postEndpoint);
     stream->print(HTTPtag);
     stream->print(hostHeader);
-    stream->print(enviroDIYHost);
+    stream->print(_enviroDIYHost);
     stream->print(tokenHeader);
     stream->print(_registrationToken);
     // stream->print(cacheHeader);
@@ -206,7 +211,7 @@ int16_t EnviroDIYPublisher::publishData(Client* outClient) {
     // Open a TCP/IP connection to the Enviro DIY Data Portal (WebSDL)
     MS_DBG(F("Connecting client. Timer (mS)"));
     MS_START_DEBUG_TIMER;
-    if (outClient->connect(enviroDIYHost, enviroDIYPort)) {
+    if (outClient->connect(_enviroDIYHost, enviroDIYPort)) {
         MS_DBG(F("Client connected after"), MS_PRINT_DEBUG_TIMER, F("ms"));
 
         mmwPostHeader(tempBuffer);
@@ -282,6 +287,16 @@ int16_t EnviroDIYPublisher::publishData(Client* outClient) {
     return responseCode;
 }
 
+void EnviroDIYPublisher::setDIYHost(const char* enviroDIYHost) {
+    _enviroDIYHost = enviroDIYHost;
+    //MS_DBG(F("DIY Host set to "), _enviroDIYHost);
+}
+
+/* FUT: void EnviroDIYPublisher::setDIYPort(const int enviroDIYPort) {
+    _enviroDIYPort = enviroDIYPort;
+    MS_DBG(F("DIY Port set to "), _enviroDIYPort);
+}*/
+
 void EnviroDIYPublisher::mmwPostHeader(char* tempBuffer) {
     // char tempBuffer[TEMP_BUFFER_SZ] = "";
     // copy the initial post header into the tx buffer
@@ -294,7 +309,7 @@ void EnviroDIYPublisher::mmwPostHeader(char* tempBuffer) {
     // there is space for that line, sending out buffer if not
     // if (bufferFree() < 28) printTxBuffer(_outClient);
     strcat(txBuffer, hostHeader);
-    strcat(txBuffer, enviroDIYHost);
+    strcat(txBuffer, _enviroDIYHost);
 
     // if (bufferFree() < 47) printTxBuffer(_outClient);
     strcat(txBuffer, tokenHeader);

@@ -73,14 +73,12 @@ const char git_branch[] = ".";
 #endif
 
 // Logger ID, also becomes the prefix for the name of the data file on SD card
-// const char *LoggerID = "TU001";
 const char* LoggerID          = LOGGERID_DEF_STR;
 const char* configIniID_def   = configIniID_DEF_STR;
 const char* configDescription = CONFIGURATION_DESCRIPTION_STR;
 
 // How frequently (in minutes) to log data
 const uint8_t loggingIntervaldef = loggingInterval_CDEF_MIN;
-// Your logger's timezone.
 
 // ==========================================================================
 //     Local storage - evolving
@@ -192,8 +190,16 @@ StreamDebugger modemDebugger(modemSerial, STANDARD_SERIAL_OUTPUT);
 #endif  // STREAMDEBUGGER_DBG
 
 // Modem Pins - Describe the physical pin connection of your modem to your board
+#if defined  MS_MAYLFY_1A3
+ // MCU pin controlling modem power --- Pin 18 is the power enable pin for the bee socket on Mayfly v1.0,
+const int8_t modemVccPin = -1;   
+// kuldge to always switch on modemVccPwrSwPin Issue #79
+const int8_t modemVccPwrSwPin = 18;
+#else 
+ //  use -1 if using Mayfly 0.5b or if the bee socket is constantly powered (ie you changed SJ18 on Mayfly1.0 to 3.3v)
 const int8_t modemVccPin =
     -2;  // MCU pin controlling modem power (-1 if not applicable)
+#endif //MS_MAYLFY_1A3
 const int8_t modemStatusPin =
     19;  // MCU pin used to read modem status (-1 if not applicable)
 const int8_t modemResetPin = -1;//20? MCU modem reset pin (-1 if unconnected)
@@ -558,11 +564,23 @@ bool userPrintStc3100BatV_avlb=false;
 
 Variable* kBatteryVoltage_V = new STSTC3100_Volt(&stc3100_phy,"nu");
 
+#if !defined MS_LION_MAX_VOLT 
+#define  MS_LION_MAX_VOLT  4.9
+#endif
+#if !defined MS_LION_ERR_VOLT 
+#define  MS_LION_ERR_VOLT  0.1234
+#endif
 
 float wLionBatStc3100_worker(void) {  // get the Battery Reading
     // Get reading - Assumes updated before calling
     float flLionBatStc3100_V = stc3100_phy.stc3100_device.v.voltage_V;
-
+    if (MS_LION_MAX_VOLT < flLionBatStc3100_V) {
+        Serial.print(F("  wLionBatStc3100 err meas LiIon V"));
+        Serial.print(flLionBatStc3100_V, 4);
+        Serial.println();
+    
+        flLionBatStc3100_V = MS_LION_ERR_VOLT;
+    }
     // MS_DBG(F("wLionBatStc3100_worker"), flLionBatStc3100_V);
 #if defined MS_TU_XX_DEBUG
     DEBUGGING_SERIAL_OUTPUT.print(F("  wLionBatStc3100_worker "));
@@ -1248,6 +1266,7 @@ void setup() {
     // uint8_t resetBackupExit = REG_RSTC_BKUPEXIT; AVR ?//Reads from hw
     uint8_t mcu_status = MCUSR; //is this already cleared by Arduino startup???
     //MCUSR = 0; //reset for unique read
+    noInterrupts(); //should be off
     initFreeRam();
 // Wait for USB connection to be established by PC
 // NOTE:  Only use this when debugging - if not connected to a PC, this
@@ -1281,7 +1300,16 @@ void setup() {
     unusedBitsMakeSafe();
     dataLogger.startFixedWatchdog();
     readAvrEeprom();
-
+#if defined USE_PS_HW_BOOT
+    //Print sames as .csv header, used in LoggerBaseExtCpp.h 
+    Serial.print(F("Board: "));
+    Serial.print((char*)epc.hw_boot.board_name);
+    Serial.print(F(" rev:'"));
+    Serial.print((char*)epc.hw_boot.rev);
+    Serial.print(F("' sn:'"));
+    Serial.print((char*)epc.hw_boot.serial_num);
+    Serial.println(F("'"));
+#endif  // USE_PS_HW_BOOT
     // set up for escape out of battery check if too low.
     // If buttonPress then exit.
     // Button is read inactive as low
@@ -1290,7 +1318,7 @@ void setup() {
  #if defined MAYFLY_BAT_STC3100
     //Setsup Sensor for battery read. FUT local V ADC
     // Could be warm boot in which case the STC3100 is alreading running
-    if(!stc3100_phy.stc3100_device.start()){
+    if(!stc3100_phy.setup()){
         MS_DBG(F("STC3100 Not detected!"));
     } else {
         uint8_t dm_lp=0;
@@ -1373,6 +1401,13 @@ void setup() {
     dataLogger.setSamplingFeatureUUID(None_STR);
 #endif  // UseModem_PushData
     // Attach the modem and information pins to the logger
+    if (modemVccPwrSwPin > -1) {
+        //For Mayfly1.0 turn on power 
+        // Kludge to allow testing
+        pinMode(modemVccPwrSwPin , OUTPUT);
+        digitalWrite(modemVccPwrSwPin, HIGH); //On
+        PRINTOUT(F("---pwr Xbee ON"));
+    } 
     dataLogger.attachModem(modemPhy);
     modemPhy.modemHardReset(); //Ensure in known state ~ 5mS
 
@@ -1398,6 +1433,7 @@ void setup() {
     EnviroDIYPOST.begin(dataLogger, &modemPhy.gsmClient,
                         ps_ram.app.provider.s.ed.registration_token,
                         ps_ram.app.provider.s.ed.sampling_feature);
+    EnviroDIYPOST.setDIYHost(ps_ram.app.provider.s.ed.cloudId);
     EnviroDIYPOST.setQuedState(true);
     EnviroDIYPOST.setTimerPostTimeout_mS(ps_ram.app.provider.s.ed.timerPostTout_ms);
     EnviroDIYPOST.setTimerPostPacing_mS(ps_ram.app.provider.s.ed.timerPostPace_ms);

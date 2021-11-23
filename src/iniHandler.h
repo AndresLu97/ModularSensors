@@ -334,9 +334,11 @@ static void epcParser() {
     }
     #endif // DigiXBeeWifi_Module
 
+    #if defined UseModem_Module
     PRINTOUT(F("NETWORK COLLECT_READINGS"),epc.app.msn.s.collectReadings_num );
     PRINTOUT(F("NETWORK SEND_OFFSET_MIN"),epc.app.msn.s.sendOffset_min);
     PRINTOUT(F("NETWORK POST_MAX_NUM"),epc.app.msn.s.postMax_num);
+    #endif // UseModem_Module
 
     #if defined USE_PUB_MMW
     //[Provider_MMW]
@@ -374,7 +376,7 @@ static void epcParser() {
 
 /* A short string size checker*/
 #define eCpy(parm1,parm2) chkLen(parm1,value,parm2)
-static bool chkLen(char *destStr, const char *value,int size) {
+__attribute__((unused)) static bool chkLen(char *destStr, const char *value,int size) {
     int value_len = strlen(value);
     bool ret_val;
     if (value_len > size-1) {
@@ -818,7 +820,7 @@ static int inihUnhandledFn(const char* section, const char* name,
             MS_DBG(F("Use Ini WiFiPwd"), value);
         } else
 #endif  // DigiXBeeWifi_Module
-
+#if defined UseModem_Module
         if (strcmp_P(name, COLLECT_READINGS_pm) == 0) {
             // convert  str to num with error checking
             long collect_readings_local = strtol(value, &endptr, 10);
@@ -866,7 +868,7 @@ static int inihUnhandledFn(const char* section, const char* name,
             MS_DBG(F("NETWORK Set POST_MAX_NUM: "),postMax_num_local);
 
         } else
-
+#endif // UseModem_Module
         {
             SerialStd.print(F("NETWORK tbd "));
             SerialStd.print(name);
@@ -1031,6 +1033,7 @@ void localAppStorageInit()
     strcpy_P((char*)epc.app.msc.s.geolocation_id,
                 (char*)F("Factory default"));
 
+    #if defined UseModem_Module
     epc.app.msn.s.network_type= MSCN_TYPE_NONE;
     strcpy_P((char*)epc.app.msn.s.apn,(char*)F(MSCN_APN_DEF_STR));
     strcpy_P((char*)epc.app.msn.s.WiFiId,(char*)F(MSCN_WIFIID_DEF_STR));  
@@ -1073,6 +1076,7 @@ void localAppStorageInit()
         epc.app.provider.s.ub.uuid[uuid_lp].name[0] = PROVID_NULL_TERMINATOR;
         epc.app.provider.s.ub.uuid[uuid_lp].value[0] = PROVID_NULL_TERMINATOR;
     }
+    #endif //  UseModem_Module
 } // localAppStorageInit()
 
 void readAvrEeprom() {
@@ -1099,6 +1103,10 @@ void readAvrEeprom() {
                  (const char*)F("enviroDIY mayfly"));
         strcpy_P((char*)epc.hw_boot.serial_num,
                  (const char*)F("M123456789abcdefgh"));
+        #if !defined HW_BOOT_REV_DEF
+            //#define HW_BOOT_REV_DEF "1.0a" tbd
+            #define HW_BOOT_REV_DEF "0.5b"
+        #endif 
         strcpy_P((char*)epc.hw_boot.rev, (const char*)F("0.5b"));
         // strcpy_P((char *)epc.hw_boot.sd_boot_ini,(const char
         // *)F("ms_cfg.ini"));
@@ -1133,7 +1141,7 @@ void readAvrEeprom() {
 
     MS_DBG(F("Common: sz="), epc.app.msc.sz);
 
-
+#if defined UseModem_Module
     // read EEPROM Network app.msn.s that maps from .ini [NETWORK] 
     PRINTOUT(F("From eeprom Network: Network Type="),epc.app.msn.s.network_type,
             F("\n APN="),(char*)epc.app.msn.s.apn, 
@@ -1143,6 +1151,7 @@ void readAvrEeprom() {
             F(" SEND_OFFSET_MIN="), epc.app.msn.s.sendOffset_min,
             F(" POST_MAX_NUM="),epc.app.msn.s.postMax_num 
             );
+#endif //defined UseModem_Module
 
     // List values for PROVIDER_XX 
 #if defined USE_PUB_MMW
