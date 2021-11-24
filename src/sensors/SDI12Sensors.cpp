@@ -698,13 +698,19 @@ bool SDI12Sensors::addSingleMeasurementResult(void) {
 
         success = true;
     } else {
-        // If there's no measurement, need to make sure we send over all
-        // of the "failed" result values
-        MS_DBG(getSensorNameAndLocation(), F("is not currently measuring!"));
+        // If there's no response, we still need to send over all the failed
+        // values
         for (uint8_t i = 0; i < _numReturnedValues; i++) {
             verifyAndAddMeasurementResult(i, static_cast<float>(SDI12SENSORS_VALUE_FLOAT_DEFAULT ));
         }
     }
+
+    // Empty the buffer again
+    _SDI12Internal.clearBuffer();
+
+    // De-activate the SDI-12 Object
+    // Use end() instead of just forceHold to un-set the timers
+    if (!wasActive) _SDI12Internal.end();
 
     // Unset the time stamp for the beginning of this measurement
     _millisMeasurementRequested = 0;
