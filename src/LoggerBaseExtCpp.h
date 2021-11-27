@@ -1229,14 +1229,21 @@ inline uint16_t Logger::serzQuedFlushFile() {
             PRINTOUT(F("seQFF remove2 err"), queDelFn);
             sd1_Err("seQFF err7 remove");
         }
+        if (sd1_card_fatfs.exists(queDelFn)) {
+            PRINTOUT(F("seQFF err failed remove"), queDelFn);
+        }
     }     
 
     retBool = serzQuedFile.rename(queDelFn);
     if (!retBool) {
-        PRINTOUT(F("seQFF rename1 err"), queDelFn);
-        //Problem - may never empty serzQuedFile - should reboot?
+        PRINTOUT(F("seQFF REBOOT rename1 err"), queDelFn);
+        //Problem - unrecoverable, so reboot
         retBool = serzQuedFile.close();
-        sd1_card_fatfs.remove(serzQuedFn);
+        if (!retBool) {
+            PRINTOUT(F("seQFF close1 failed err"), serzQuedFn);
+        }
+        forceSysReset(1,4567);
+        //sd1_card_fatfs.remove(serzQuedFn);
         // sd1_Err("seQFF rename2");
         //return num_lines;
     } else {
