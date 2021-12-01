@@ -287,7 +287,7 @@ VariableArray varArray;
 // ==========================================================================
 /** Start [loggers] */
 // Create a logger instance
-Logger dataLogger;
+Logger dataLogger(LoggerID, loggingIntervaldef, &varArray);
 /** End [loggers] */
 
 #if defined MS_TTY_USER_INPUT
@@ -409,7 +409,7 @@ void setup() {
 
     // Begin the variable array[s], logger[s], and publisher[s]
     varArray.begin(variableCount, variableList);
-    dataLogger.begin(LoggerID, loggingIntervaldef, &varArray);
+    dataLogger.begin();
 
     // Set up the sensors
     Serial.println(F("Setting up sensors..."));
