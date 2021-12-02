@@ -112,7 +112,12 @@ const int8_t sensorPowerPin =
     22;  // MCU pin controlling main sensor power (-1 if not applicable)
 
 // Create the main processor chip "sensor" - for general metadata
+#if defined  MS_MAYLFY_1_0
+const char*    mcuBoardVersion = "v1.0";
+//const char*    mcuBoardVersion = "v1.1"; //fut for next rev
+#else 
 const char*    mcuBoardVersion = "v0.5b";
+#endif 
 ProcessorStats mcuBoardPhy(mcuBoardVersion);
 
 // ==========================================================================
@@ -190,7 +195,7 @@ StreamDebugger modemDebugger(modemSerial, STANDARD_SERIAL_OUTPUT);
 #endif  // STREAMDEBUGGER_DBG
 
 // Modem Pins - Describe the physical pin connection of your modem to your board
-#if defined  MS_MAYLFY_1A3
+#if defined  MS_MAYLFY_1_0
  // MCU pin controlling modem power --- Pin 18 is the power enable pin for the bee socket on Mayfly v1.0,
 const int8_t modemVccPin = -1;   
 // kuldge to always switch on modemVccPwrSwPin Issue #79
