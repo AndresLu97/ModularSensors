@@ -252,6 +252,9 @@ void postLogClose();
 bool listFile(File* filep, char* fn_str, char* uid);
 
 public:
+// A simple data-time formatting, compatible with reading into excel spreadsheet - see also formatDateTime_ISO8601()
+String formatDateTime_str(DateTime& dt);
+String formatDateTime_str(uint32_t epochTime);
 bool serzBegin(void);
 // The SD card and file
 #if 0  // defined BOARD_SDQ_QSPI_FLASH
