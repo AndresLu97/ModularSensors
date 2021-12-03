@@ -1611,7 +1611,7 @@ void Logger::postLogLine(const char *logMsg,bool addCRNL) {
     }
     char tempBuffer[TEMP_BUFFER_SZ];
     //Print internal time
-    formatDateTime_str(getNowEpochUTz))
+    formatDateTime_str(getNowEpochTz)
         .toCharArray(tempBuffer, TEMP_BUFFER_SZ);    
     postsLogHndl.print(tempBuffer);
     postsLogHndl.print(F(",MSG,"));
