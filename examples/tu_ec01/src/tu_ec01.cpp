@@ -60,6 +60,12 @@ const char git_branch[] = PIO_SRC_REV;
 #else
 const char git_branch[] = ".";
 #endif
+#ifdef PIO_SRC_USR
+const char git_usr[] = PIO_SRC_USR;
+#else
+const char git_usr[] = "usr";
+#endif
+
 /** Start [logging_options] */
 // The name of this program file
 //const char* sketchName = "simple_logging.ino";
@@ -370,6 +376,8 @@ void setup() {
     // Print a start-up note to the first serial port
     Serial.print(F("\n---Boot Sw Build: "));
     Serial.print(build_ref);
+    Serial.print(" ");
+    Serial.println(git_usr);
     Serial.print(" ");
     Serial.println(git_branch);
 

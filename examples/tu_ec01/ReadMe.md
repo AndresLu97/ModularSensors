@@ -11,7 +11,7 @@ To build,
 in shell step to exampes\tu_ec01
 .\doMe.ps1  <release_num>   eg .\doMe.ps1 0.30.0dvlp  .hex are put in ../../../releases
 
-The time needs to be configured. 
+The time needs to be configured. (see tools )
 
 _______
 
