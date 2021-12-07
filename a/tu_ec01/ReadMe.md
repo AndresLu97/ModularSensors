@@ -1,15 +1,19 @@
-[//]: # ( @page example_simple_logging Simple Logging Example )
+[//]: # ( @page alpha_EC_logging EC Logging)
 # Electrical Conductivity - saving data to an SD card  alpha version
 
 This is an "alpha" version located in ModularSensors\a\tu_ec01 as the PlatformIo setup, 
 and allows editing of code in the Modular/src/.. directories as well as the
 ModularSensors\a\tu_ec01.   
+
 The "alpha" configuration is defined in ModularSensors\a\tu_ec01\platformio.ini.
 
-This measures Electrical Conductivity and saves it to the SD card..
+To use,
+a ) Build and download from PlaformIO
+  
 
-The time needs to be configured. 
-
+The time needs to be configured.
+https://raw.githubusercontent.com/EnviroDIY/Sodaq_DS3231/master/examples/PCsync/PCsync.ino
+https://www.envirodiy.org/topic/clock-sync-for-mayfly-v1-0/
 _______
 
 [//]: # ( @tableofcontents )

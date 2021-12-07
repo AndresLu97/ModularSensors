@@ -1,22 +1,17 @@
+[BOOT]
+EEPROM_WRITE=DEFAULT_APP_EEPROM ; Initialize app then write, dangerous
+
 [COMMON]
 ;This section required. Max 80 active chars, not including after any ;
 LOGGER_ID =FOP_EC01 ;Auto Site Reference
 LOGGING_INTERVAL_MINUTES=15
-LIION_TYPE = 3 ;0=Any 1=LiIon0.5A 2=1AH 3=LiSOCL2 4=3Leclanche
+LIION_TYPE = 0 ;0=Any 1=LiIon0.5A 2=1AH 3=LiSOCL2 4=3Leclanche
 TIME_ZONE=-8  ; -12 to +12
-GEOGRAPHICAL_ID="SSU FOP EC DemoCreek#02 Monitor" 
+GEOGRAPHICAL_ID="SSU FOP EC Creek Bridge Monitor" 
 
-[NETWORK]
-
-
-[BOOT]
-BOARD_NAME=mayfly
-BOARD_SN=MAYFLY21260
-BOARD_REV=v1.0
-EEPROM_WRITE=YES ;Last operation
 
 [USER]
-;ACTION=WRITE ; Last Operation
+ACTION=WRITE ; Last Operation
 
 
 
