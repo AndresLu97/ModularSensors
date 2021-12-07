@@ -30,7 +30,7 @@ function Do-Build {
         Write-host $(cmd /r dir /s .\src\ms_cfg.h )
         pio run
         move .\.pio\build\mayfly\firmware.hex  $dest_file
-        move .\.pio\build\mayfly\firmware.elf  $dest_file2
+        #move .\.pio\build\mayfly\firmware.elf  $dest_file2
         Write-Output "**** Build Output in $dest_file"
     }
 }

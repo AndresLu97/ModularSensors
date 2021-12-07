@@ -377,21 +377,32 @@ void setup() {
     Serial.print(F("\n---Boot Sw Build: "));
     Serial.print(build_ref);
     Serial.print(" ");
-    Serial.println(git_usr);
-    Serial.print(" ");
     Serial.println(git_branch);
+    Serial.print(" ");
+    Serial.println(git_usr);
 
     Serial.print(F("Sw Name: "));
     Serial.println(configDescription);
 
     Serial.print(F(" on Logger "));
     Serial.println(LoggerID);
-    Serial.println();
 
     Serial.print(F("Using ModularSensors Library version "));
     Serial.println(MODULAR_SENSORS_VERSION);
 
     dataLogger.startFixedWatchdog();
+    readAvrEeprom();
+#if defined USE_PS_HW_BOOT
+    //Print sames as .csv header, used in LoggerBaseExtCpp.h 
+    Serial.print(F("Board: "));
+    Serial.print((char*)epc.hw_boot.board_name);
+    Serial.print(F(" rev:'"));
+    Serial.print((char*)epc.hw_boot.rev);
+    Serial.print(F("' sn:'"));
+    Serial.print((char*)epc.hw_boot.serial_num);
+    Serial.println(F("'"));
+#endif  // USE_PS_HW_BOOT
+
     // Set up pins for the LED's - LOW is ON
     pinMode(greenLED, OUTPUT);
     digitalWrite(greenLED, LOW);
