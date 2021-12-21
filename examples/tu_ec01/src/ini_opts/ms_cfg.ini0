@@ -6,7 +6,7 @@ GEOGRAPHICAL_ID="SSU FOP EC Init App DefaultsDemoCreek#02 Monitor"
 
 [BOOT]
 BOARD_NAME=mayfly
-BOARD_SN=MAYFLY21260
+BOARD_SN=MAYFLY21063
 BOARD_REV=1.0.
 EEPROM_WRITE=YES ;Last operation
 ;EEPROM_WRITE=DEFAULT_APP_EEPROM ; Initialize app then write, dangerous
