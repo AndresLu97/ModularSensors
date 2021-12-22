@@ -102,7 +102,7 @@
 ProcessorStats::ProcessorStats(const char* version)
     : Sensor(BOARD, PROCESSOR_NUM_VARIABLES, PROCESSOR_WARM_UP_TIME_MS,
              PROCESSOR_STABILIZATION_TIME_MS, PROCESSOR_MEASUREMENT_TIME_MS, -1,
-             -1, 1) {
+             -1, 1, PROCESSOR_INC_CALC_VARIABLES) {
     _version = version;
     sampNum  = 0;
 
@@ -153,6 +153,7 @@ bool ProcessorStats::addSingleMeasurementResult(void) {
 
     float sensorValue_battery = -9999;
 
+
 #if !defined ARDUINO_ARCH_AVR
 #if !defined PROC_ADC_DEFAULT_RESOLUTION
 #define PROC_ADC_DEFAULT_RESOLUTION 10
@@ -160,20 +161,20 @@ bool ProcessorStats::addSingleMeasurementResult(void) {
     analogReadResolution(PROC_ADC_DEFAULT_RESOLUTION);
     analogReference(AR_DEFAULT);
 #endif  // ARDUINO_ARCH_AVR
-#if defined(ARDUINO_AVR_ENVIRODIY_MAYFLY)  
-        if (strcmp(_version, "v0.3") == 0 || strcmp(_version, "v0.4") == 0) {
-            // Get the battery voltage
-            int rawBattery      = analogRead(_batteryPin);
-            sensorValue_battery = (3.3 / 1023.) * 1.47 * rawBattery;
-            MS_DBG(F("Get battery voltage1 "), _version, rawBattery);
-        }
-        if (strcmp(_version, "v0.5") == 0 || strcmp(_version, "v0.5b") == 0) {
-            // Get the battery voltage
-            int rawBattery      = analogRead(_batteryPin);
-            sensorValue_battery = (3.3 / 1023.) * 4.7 * rawBattery;
-            MS_DBG(F("Get battery voltage2 "), _version, rawBattery);
-        }
     
+#if defined(ARDUINO_AVR_ENVIRODIY_MAYFLY)
+    if (strcmp(_version, "v0.3") == 0 || strcmp(_version, "v0.4") == 0) {
+        // Get the battery voltage
+        float rawBattery    = analogRead(_batteryPin);
+        sensorValue_battery = (3.3 / 1023.) * 1.47 * rawBattery;
+    }
+    if (strcmp(_version, "v0.5") == 0 || strcmp(_version, "v0.5b") ||
+        strcmp(_version, "v1.0") || strcmp(_version, "v1.1") == 0) {
+        // Get the battery voltage
+        float rawBattery    = analogRead(_batteryPin);
+        sensorValue_battery = (3.3 / 1023.) * 4.7 * rawBattery;
+    }
+
 #elif defined(ARDUINO_AVR_FEATHER32U4) || defined(ARDUINO_SAMD_FEATHER_M0) || \
     defined(ARDUINO_SAMD_FEATHER_M0_EXPRESS) ||                               \
     defined(ADAFRUIT_FEATHER_M4_EXPRESS)

@@ -1,18 +1,21 @@
 [//]: # ( @page alpha_EC_logging EC Logging)
 # Electrical Conductivity - saving data to an SD card  alpha version
 
-This is an "developmentt" version located in ModularSensors\examples\tu_ec01 as the PlatformIo setup, 
+This is an "development" version located in ModularSensors\examples\tu_ec01 as the PlatformIo setup, 
 and allows editing of code in the ModularSensors\a\tu_ec01.
 and references the github stable version of ModularSensors - copied to 
 examples\tu_ec01\.pio\libdeps\mayfly\EnviroDIY_ModularSensors
 
 This  configuration is defined in ModularSensors\examples\tu_ec01\platformio.ini.
-To build,  
+To use,
+a ) Build and download from PlaformIO
+b) FUT   
 in shell step to exampes\tu_ec01
 .\doMe.ps1  <release_num>   eg .\doMe.ps1 0.30.0dvlp  .hex are put in ../../../releases
 
-The time needs to be configured. 
-
+The time needs to be configured.
+https://raw.githubusercontent.com/EnviroDIY/Sodaq_DS3231/master/examples/PCsync/PCsync.ino
+https://www.envirodiy.org/topic/clock-sync-for-mayfly-v1-0/
 _______
 
 [//]: # ( @tableofcontents )

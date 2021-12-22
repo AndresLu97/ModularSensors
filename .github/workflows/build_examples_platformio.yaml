@@ -15,9 +15,10 @@ jobs:
             examples/single_sensor/,
             examples/simple_logging/,
             examples/simple_logging_LearnEnviroDIY/,
-            examples/DRWI_CitSci/,
-            examples/DRWI_LTE/,
             examples/DRWI_NoCellular/,
+            examples/DRWI_2G/,
+            examples/DRWI_DigiLTE/,
+            examples/DRWI_SIM7080LTE/,
             examples/double_logger/,
             examples/baro_rho_correction/,
             examples/data_saving/,
@@ -40,14 +41,14 @@ jobs:
           fi
 
       - name: Set up Python
-        uses: actions/setup-python@v2.3.1
+        uses: actions/setup-python@v2.3.0
 
       - name: Install PlatformIO
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade platformio
 
-      - name: Restore or Cache PlatformIO and Libraries
+      - name: Restore PlatformIO Platforms and Libraries
         uses: actions/cache@v2.1.7
         id: cache_libraries
         with:
@@ -65,9 +66,11 @@ jobs:
           sh continuous_integration/install-deps-platformio.sh
 
       # Install ModularSensors at the Global level for PlatformIO
+      # Force install to get the right version
       - name: Install the testing version of Modular Sensors for PlatformIO
         run: |
-          pio lib -g install ${{ env.LIBRARY_INSTALL_SOURCE }}
+          pio lib -g install -f ${{ env.LIBRARY_INSTALL_SOURCE }}
+          pio lib show EnviroDIY_ModularSensors
 
       - name: Run PlatformIO
         env:
@@ -77,5 +80,7 @@ jobs:
           echo "${{ env.LIBRARY_INSTALL_SOURCE }}"
           platformio ci --project-conf="continuous_integration/platformio.ini"
 
-      - name: Uninstall testing version of Modular Sensors before caching
-        run: pio lib -g uninstall EnviroDIY_ModularSensors
+      # NOTE:  Don't uninstall for PlatformIO because the library manager will clean up the
+      # dependencies leaving nothing for the cache
+      # - name: Uninstall testing version of Modular Sensors before caching
+      #   run: pio lib -g uninstall EnviroDIY_ModularSensors

@@ -1229,14 +1229,21 @@ inline uint16_t Logger::serzQuedFlushFile() {
             PRINTOUT(F("seQFF remove2 err"), queDelFn);
             sd1_Err("seQFF err7 remove");
         }
+        if (sd1_card_fatfs.exists(queDelFn)) {
+            PRINTOUT(F("seQFF err failed remove"), queDelFn);
+        }
     }     
 
     retBool = serzQuedFile.rename(queDelFn);
     if (!retBool) {
-        PRINTOUT(F("seQFF rename1 err"), queDelFn);
-        //Problem - may never empty serzQuedFile - should reboot?
+        PRINTOUT(F("seQFF REBOOT rename1 err"), queDelFn);
+        //Problem - unrecoverable, so reboot
         retBool = serzQuedFile.close();
-        sd1_card_fatfs.remove(serzQuedFn);
+        if (!retBool) {
+            PRINTOUT(F("seQFF close1 failed err"), serzQuedFn);
+        }
+        forceSysReset(1,4567);
+        //sd1_card_fatfs.remove(serzQuedFn);
         // sd1_Err("seQFF rename2");
         //return num_lines;
     } else {
@@ -1518,8 +1525,8 @@ bool Logger::postLogOpen(const char* postLogNam_str) {
     // Generate the file name from logger ID and date
     String fileName = String(postLogNam_str);
 
-    // Create rotating log of 4 chars - start YYYY_MM_DD
-    String nameTemp = formatDateTime_ISO8601(getNowEpochTz()).substring(0, 10);
+    // Create rotating log of 4 chars YYMM - formatDateTime is YYYY MM DD
+     String nameTemp = formatDateTime_str(getNowEpochTz());
 
     // Drop middle _ and get YYMM
     fileName += nameTemp.substring(2, 4) + nameTemp.substring(5, 7);
@@ -1575,7 +1582,8 @@ void Logger::postLogLine(uint8_t instance, int16_t rspParam) {
 #else
 
     char tempBuffer[TEMP_BUFFER_SZ];
-    formatDateTime_ISO8601(getNowEpochUTC())
+    //Print internal time
+    formatDateTime_str(getNowEpochTz())
         .toCharArray(tempBuffer, TEMP_BUFFER_SZ);
     postsLogHndl.print(tempBuffer);
 #endif
@@ -1596,13 +1604,15 @@ void Logger::postLogLine(const char *logMsg,bool addCRNL) {
     if (!postsLogHndl.isOpen()) {
         wasOpen=false;
         if (!postLogOpen()) {
-            //TODO leave error
+            PRINTOUT(F("postLogLine can't open file"));      
+            //TODO possible reboot         
             return;
         } 
     }
     char tempBuffer[TEMP_BUFFER_SZ];
-    formatDateTime_ISO8601(getNowEpochUTC())
-        .toCharArray(tempBuffer, TEMP_BUFFER_SZ);
+    //Print internal time
+    formatDateTime_str(getNowEpochTz)
+        .toCharArray(tempBuffer, TEMP_BUFFER_SZ);    
     postsLogHndl.print(tempBuffer);
     postsLogHndl.print(F(",MSG,"));
     postsLogHndl.print(logMsg);
@@ -1787,4 +1797,16 @@ bool Logger::serzBegin(void) {
     return true;
 }
 
+// Convert a date-time object into a formatted string
+String Logger::formatDateTime_str(DateTime& dt) {
+    String dateTimeStr;
+    dt.addToString(dateTimeStr);
+    return dateTimeStr;
+}
+
+// Convert an epoch time into a formatted string
+String Logger::formatDateTime_str(uint32_t epochTime) {
+    DateTimeClass(dt1, epochTime);
+    return formatDateTime_str(dt1);
+}
 // End LoggerBaseExtCpp.h

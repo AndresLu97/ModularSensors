@@ -34,7 +34,7 @@ void printDirectory(File dir, int numTabs) {    //This is a function that displa
             } else {
                 // files have sizes, directories do not
                 Serial.print("\t\t");
-                Serial.println(entry.size(), DEC);
+                Serial.println((unsigned long)entry.size(), DEC);
             }
         } else {
             Serial.println("Failed to get filename");

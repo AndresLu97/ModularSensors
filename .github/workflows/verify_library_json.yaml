@@ -11,8 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2.4.0
 
+<<<<<<< HEAD
       - name: Setup Node.js
         uses: actions/setup-node@v2.5.0
+=======
+      - name: Set up Python
+        uses: actions/setup-python@v2.3.0
+>>>>>>> rel1_dvlp1m
 
       - name: Install PlatformIO
         run: |
