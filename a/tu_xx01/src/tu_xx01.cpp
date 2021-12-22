@@ -206,7 +206,7 @@ const int8_t modemVccPin = -1;
 const int8_t modemVccPwrSwPin = 18;
 #else 
  //  use -1 if using Mayfly 0.5b or if the bee socket is constantly powered (ie you changed SJ18 on Mayfly1.0 to 3.3v)
-const int8_t modemVccPin =
+const int8_t modemVccPwrSwPin =
     -2;  // MCU pin controlling modem power (-1 if not applicable)
 #endif //MS_MAYLFY_1_0
 const int8_t modemStatusPin =
@@ -257,7 +257,7 @@ const bool useCTSforStatus =
 // the CTS pin can also be used if necessary
 // useCTSforStatus is overload with  useCTSforStatus!-> loggerModem.statusLevel
 // for detecting Xbee SleepReqAct==1
-DigiXBeeWifi modemXBWF(&modemSerHw, modemVccPin, modemStatusPin,
+DigiXBeeWifi modemXBWF(&modemSerHw, modemVccPwrSwPin, modemStatusPin,
                        useCTSforStatus, modemResetPin, modemSleepRqPin,
                        wifiId_def, wifiPwd_def);
 // Create an extra reference to the modem by a generic name (not necessary)
