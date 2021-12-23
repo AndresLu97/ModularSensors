@@ -201,12 +201,12 @@ StreamDebugger modemDebugger(modemSerial, STANDARD_SERIAL_OUTPUT);
 // Modem Pins - Describe the physical pin connection of your modem to your board
 #if defined  MS_MAYLFY_1_0
  // MCU pin controlling modem power --- Pin 18 is the power enable pin for the bee socket on Mayfly v1.0,
-const int8_t modemVccPin = -1;   
+const int8_t modemVccPin = 18;   
 // kuldge to always switch on modemVccPwrSwPin Issue #79
-const int8_t modemVccPwrSwPin = 18;
+//const int8_t modemVccPwrSwPin = 18;
 #else 
  //  use -1 if using Mayfly 0.5b or if the bee socket is constantly powered (ie you changed SJ18 on Mayfly1.0 to 3.3v)
-const int8_t modemVccPwrSwPin =
+const int8_t modemVccPin =
     -2;  // MCU pin controlling modem power (-1 if not applicable)
 #endif //MS_MAYLFY_1_0
 const int8_t modemStatusPin =
@@ -257,7 +257,7 @@ const bool useCTSforStatus =
 // the CTS pin can also be used if necessary
 // useCTSforStatus is overload with  useCTSforStatus!-> loggerModem.statusLevel
 // for detecting Xbee SleepReqAct==1
-DigiXBeeWifi modemXBWF(&modemSerHw, modemVccPwrSwPin, modemStatusPin,
+DigiXBeeWifi modemXBWF(&modemSerHw, modemVccPin, modemStatusPin,
                        useCTSforStatus, modemResetPin, modemSleepRqPin,
                        wifiId_def, wifiPwd_def);
 // Create an extra reference to the modem by a generic name (not necessary)
@@ -1412,11 +1412,11 @@ void setup() {
     dataLogger.setSamplingFeatureUUID(None_STR);
 #endif  // UseModem_PushData
     // Attach the modem and information pins to the logger
-    if (modemVccPwrSwPin > -1) {
+    if (modemVccPin > -1) {
         //For Mayfly1.0 turn on power 
         // Kludge to allow testing
-        pinMode(modemVccPwrSwPin , OUTPUT);
-        digitalWrite(modemVccPwrSwPin, HIGH); //On
+        pinMode(modemVccPin , OUTPUT);
+        digitalWrite(modemVccPin, HIGH); //On
         PRINTOUT(F("---pwr Xbee ON"));
     } 
     dataLogger.attachModem(modemPhy);

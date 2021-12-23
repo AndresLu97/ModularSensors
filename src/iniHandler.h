@@ -59,9 +59,9 @@ const char TIMER_POST_PACE_MS_pm[] EDIY_PROGMEM = "TIMER_POST_PACE_MS";
 const int  TIMER_POST_PACE_MS_MAX=5000 ;
 const int  TIMER_POST_PACE_MS_MIN=0 ;
 
-const char POST_MAX_NUM_pm[] EDIY_PROGMEM       = "POST_MAX_NUM";
-const int  POST_RANGE_MAX_NUM=2000;
-const int  POST_RANGE_MIN_NUM=0;
+const char POST_MAX_RECS_NUM_pm[] EDIY_PROGMEM       = "POST_MAX_NUM";
+const int  POST_MAX_RECS_RANGE_MAX_NUM=2000;
+const int  POST_MAX_RECS_RANGE_MIN_NUM=0;
 
 const char PROVIDER_TS_pm[] EDIY_PROGMEM           = "PROVIDER_TS";
 //KEY STRINGS 
@@ -508,17 +508,17 @@ static int inihUnhandledFn(const char* section, const char* name,
             epc.app.provider.s.ts.timerPostPace_ms = timerPostPacing_local;
             MS_DBG(F("PROVIDE_TS Set TIMER_POST_PACE_MS: "),timerPostPacing_local);
 
-        /*} else if (strcmp_P(name, POST_MAX_NUM_pm) == 0) {
+        /*} else if (strcmp_P(name, POST_MAX_RECS_NUM_pm) == 0) {
             // convert  str to num with error checking
             long postMax_num_local = strtol(value, &endptr, 10);
-            if ((postMax_num_local <= POST_RANGE_MAX_NUM) && (postMax_num_local >= TIMER_POST_PACE_MS_MIN) &&
+            if ((postMax_num_local <= POST_MAX_RECS_RANGE_MAX_NUM) && (postMax_num_local >= TIMER_POST_PACE_MS_MIN) &&
                 (errno != ERANGE)) 
             {
                 //Null, default below
             } else {
                 PRINTOUT(
                     F("PROVIDER_TS Set POST_MAX_NUM error; ["),
-                    TIMER_POST_PACE_MS_MIN,POST_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
+                    TIMER_POST_PACE_MS_MIN,POST_MAX_RECS_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
                     postMax_num_local=MMW_TIMER_POST_MAX_MUM_DEF;
             }
             //postMax_num = (uint8_t)postMax_num_local;
@@ -577,17 +577,17 @@ static int inihUnhandledFn(const char* section, const char* name,
             epc.app.provider.s.ub.timerPostPace_ms = timerPostPacing_local;
             MS_DBG(F("PROVIDR_UBIDOTS Set TIMER_POST_PACE_MS: "),timerPostPacing_local);
 
-        /*} else if (strcmp_P(name, POST_MAX_NUM_pm) == 0) {
+        /*} else if (strcmp_P(name, POST_MAX_RECS_NUM_pm) == 0) {
             // convert  str to num with error checking
             long postMax_num_local = strtol(value, &endptr, 10);
-            if ((postMax_num_local <= POST_RANGE_MAX_NUM) && (postMax_num_local >= POST_RANGE_MIN_NUM) &&
+            if ((postMax_num_local <= POST_MAX_RECS_RANGE_MAX_NUM) && (postMax_num_local >= POST_MAX_RECS_RANGE_MIN_NUM) &&
                 (errno != ERANGE)) 
             {
                 //Null, default below
             } else {
                 PRINTOUT(
                     F("PROVIDER_UBIDOTS Set POST_MAX_NUM error; (range"),
-                    POST_RANGE_MIN_NUM,POST_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
+                    POST_MAX_RECS_RANGE_MIN_NUM,POST_MAX_RECS_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
                     postMax_num_local=MMW_TIMER_POST_MAX_MUM_DEF;
             }
             //postMax_num = (uint8_t)postMax_num_local;
@@ -849,17 +849,17 @@ static int inihUnhandledFn(const char* section, const char* name,
             MS_DBG(F("NETWORK Set SEND_OFFSET_MIN: "),send_offset_min_local);   
             epc.app.msn.s.sendOffset_min =  (uint8_t)send_offset_min_local;
 
-         } else if (strcmp_P(name, POST_MAX_NUM_pm) == 0) {
+         } else if (strcmp_P(name, POST_MAX_RECS_NUM_pm) == 0) {
             // convert  str to num with error checking
             long postMax_num_local = strtol(value, &endptr, 10);
-            if ((postMax_num_local <= POST_RANGE_MAX_NUM) && (postMax_num_local >= POST_RANGE_MIN_NUM) &&
+            if ((postMax_num_local <= POST_MAX_RECS_RANGE_MAX_NUM) && (postMax_num_local >= POST_MAX_RECS_RANGE_MIN_NUM) &&
                 (errno != ERANGE)) 
             {
                 //Null, default below
             } else {
                 PRINTOUT(
                     F("NETWORK Set POST_MAX_NUM error; range["), 
-                    POST_RANGE_MIN_NUM,POST_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
+                    POST_MAX_RECS_RANGE_MIN_NUM,POST_MAX_RECS_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
                     postMax_num_local=MMW_TIMER_POST_MAX_MUM_DEF;
 #warning should MMW_TIMER_POST_MAX_MUM_DEF be MNGI_TIMER_POST_MAX_MUM_DEF 
             }
