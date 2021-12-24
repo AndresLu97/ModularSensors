@@ -1469,6 +1469,7 @@ void setup() {
     //UbidotsPub.setTimerPostPacing_mS(ps_ram.app.provider.s.ts.timerPostPace_ms);
 #endif // USE_PUB_UBIDOTS
 
+    dataLogger.setSendQueSz_num(ps_ram.app.msn.s.sendQueSz_num); 
     dataLogger.setSendEveryX(ps_ram.app.msn.s.collectReadings_num);
     dataLogger.setSendOffset(ps_ram.app.msn.s.sendOffset_min);  // delay Minutes
     dataLogger.setPostMax_num(ps_ram.app.msn.s.postMax_num); 
