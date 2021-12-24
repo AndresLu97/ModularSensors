@@ -1005,12 +1005,15 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                             deszq_line[DESLZ_STATUS_POS] = DESLZ_STATUS_UNACK;
                         }
 #endif  // if x
-                        retVal = serzQuedFile.print(deszq_line);
-                        if (0 >= retVal) {
-                            PRINTOUT(F("pubDQTR serzQuedFil err"), retVal);
+                        if (desz_pending_records >= _sendQueSz_num) {
+                                PRINTOUT(F("pubDQTR QuedFull, skip reading. sendQue "),  _sendQueSz_num);
+                        } else {
+                            retVal = serzQuedFile.print(deszq_line);
+                            if (0 >= retVal) {
+                                PRINTOUT(F("pubDQTR serzQuedFil err"), retVal);
+                            }
+                            desz_pending_records++;  // TODO: njh per publisher
                         }
-                        desz_pending_records++;  // TODO: njh per publisher
-
                         /*TODO njh process
                         if (HTTPSTATUS_NC_901 == rspCode) {
                             MS_DBG(F("pubDQTR abort this
