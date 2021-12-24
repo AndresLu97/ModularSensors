@@ -1165,7 +1165,7 @@ bool Logger::serzQuedCloseFile(bool flush) {
 #define QUEOLD_BASE_FN_STR "QUEDEL01.TXT"
 inline uint16_t Logger::serzQuedFlushFile() {
     /*  The flush algorithim is, 
-     copy unsent lines to a temporary_file.
+     copy unsent lines to a temporary_file up to _sendQueSz_num, and then discard rest
      Assumes serzQuedFile points incoming file
      when complete rename serzQuedFile  to delete_file
      rename temporary_file to serzQuedFile to complete flush
@@ -1176,6 +1176,7 @@ inline uint16_t Logger::serzQuedFlushFile() {
     int16_t retNum;
     int16_t  num_char ;
     uint16_t num_lines = 0;   
+    uint16_t num_skipped=0;
     bool    retBool;
 
     // Check if exists and delete
@@ -1210,19 +1211,32 @@ inline uint16_t Logger::serzQuedFlushFile() {
     MS_DBG(F("seQFF cpy lines across"));
     while (0 < (num_char = serzQuedFile.fgets(deszq_line,
                                                 QUEFILE_MAX_LINE))) {
-        retNum = tgtoutFile.write(deszq_line, num_char);
-        // Squelch last char LF
-        deszq_line[sizeof(deszq_line) - 1] = 0;
-        MS_DBG(deszq_line);
-        if (retNum != num_char) {
-            PRINTOUT(F("seQFF tgtoutFile write3 err"), num_char,
-                        retNum);
-            // sd1_Err("seQFF write4");
-            break;
-        }
-        num_lines++;
-    }
 
+        if (num_lines>=_sendQueSz_num) {
+            /*Limit sendQueSz on Copy, implicitly this not on creation 
+            This is the first pass at limiting the size of the que by dumping the newest.
+            FIFO.
+            Future may want to keep the latest readings 
+            */
+            num_skipped++;
+        } else {
+
+            retNum = tgtoutFile.write(deszq_line, num_char);
+            // Squelch last char LF
+            deszq_line[sizeof(deszq_line) - 1] = 0;
+            MS_DBG(deszq_line);
+            if (retNum != num_char) {
+                PRINTOUT(F("seQFF tgtoutFile write3 err"), num_char,
+                            retNum);
+                // sd1_Err("seQFF write4");
+                break;
+            }
+            num_lines++;
+        }
+    }
+    if (num_skipped){ 
+        PRINTOUT(F("seQFF sendQue Size "), _sendQueSz_num, F(",queued"),num_lines, F(",latest readings discarded"),num_skipped);
+    };
     //Cleanup flushed serzQuedFile to del_file as debugging aid
     if (sd1_card_fatfs.exists(queDelFn)) {
         if (!sd1_card_fatfs.remove(queDelFn)) {
