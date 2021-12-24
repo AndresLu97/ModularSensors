@@ -1,5 +1,5 @@
 /*****************************************************************************
-ms_cfg.h_LT5_lte  - ModularSensors Configuration - tgt _LT5 /LTE
+ms_cfg.h_LT5_wifi  - ModularSensors Configuration - tgt _LT5 /WiFi
 Written By:  Neil Hancock www.envirodiy.org/members/neilh20/
 Development Environment: PlatformIO
 Hardware Platform(s): EnviroDIY Mayfly Arduino Datalogger+RS485 Wingboard
@@ -71,7 +71,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define MFName_DEF "Mayfly"
 #define HwVersion_DEF MFVersion_DEF
 #define HwName_DEF MFName_DEF
-#define CONFIGURATION_DESCRIPTION_STR "tu_LT5_lte LT500"
+#define CONFIGURATION_DESCRIPTION_STR "tu_LT5_wifi LT500"
 
 #define USE_MS_SD_INI 1
 #define USE_PS_EEPROM 1
@@ -114,9 +114,9 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 
 
 // Instructions: define only one  _Module
-//#define DigiXBeeWifi_Module 1
+#define DigiXBeeWifi_Module 1
 //#warning infoMayflyWithDigiXBeeWiFi
-#define DigiXBeeCellularTransparent_Module 1
+//#define DigiXBeeCellularTransparent_Module 1
 //#warning infoMayflyWithDigiXBeeCellTransparent
 // #define DigiXBeeLTE_Module 1 - unstable
 // #define TINY_GSM_MODEM_SIM800  // Select for a SIM800, SIM900, or variant
@@ -150,9 +150,8 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 //POST PACING ms 0-15000
 #define MMW_TIMER_POST_PACING_MS_DEF 100L
 //Post MAX Num - is num of MAX num at one go. 0 no limit
-//#define MMWGI_POST_MAX_RECS_MUM_DEF 100 //ms_common.h
+#define MMW_TIMER_POST_MAX_MUM_DEF 100 
 //Manage Internet - common for all providers
-//#define MWGI_SEND_QUE_SZ_NUM_DEF  700
 #define MNGI_COLLECT_READINGS_DEF 1
 #define MNGI_SEND_OFFSET_MIN_DEF 0
 #endif  // Modules

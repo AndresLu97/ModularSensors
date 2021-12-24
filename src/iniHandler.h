@@ -63,7 +63,7 @@ const char POST_MAX_RECS_NUM_pm[] EDIY_PROGMEM       = "POST_MAX_NUM";
 const int  POST_MAX_RECS_RANGE_MAX_NUM=2000;
 const int  POST_MAX_RECS_RANGE_MIN_NUM=0;
 
-const char SEND_QUE_SZ_NUM_pm[] EDIY_PROGMEM       = "POST_QUE_SZ_NUM";
+const char SEND_QUE_SZ_NUM_pm[] EDIY_PROGMEM       = "SEND_QUE_SZ_NUM";
 const int  SEND_QUE_SZ_MAX_NUM = 700;
 const int  SEND_QUE_SZ_MIN_NUM = 0;
 
