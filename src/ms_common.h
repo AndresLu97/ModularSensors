@@ -167,9 +167,12 @@ typedef struct {
 #ifndef MNGI_SEND_OFFSET_MIN_DEF 
 #define MNGI_SEND_OFFSET_MIN_DEF 100
 #endif //MNGI_SEND_OFFSET_MIN_DEF 
-#ifndef MMW_TIMER_POST_MAX_MUM_DEF
-#define MMW_TIMER_POST_MAX_MUM_DEF 100
-#endif //MMW_TIMER_POST_MAX_MUM_DEF 
+#ifndef MMWGI_POST_MAX_RECS_MUM_DEF
+#define MMWGI_POST_MAX_RECS_MUM_DEF 100
+#endif //MMW_POST_MAX_RECS_MUM_DEF 
+#ifndef MMWGI_SEND_QUE_SZ_NUM_DEF
+#define MMWGI_SEND_QUE_SZ_NUM_DEF 2800
+#endif //MMWGI_SEND_QUE_SZ_NUM_DEF 
 typedef struct {
     uint8_t network_type; // 0=apn ,1=wifi network 
     uint8_t apn[MSCN_APN_SZ];           // 32
@@ -178,6 +181,7 @@ typedef struct {
     uint8_t collectReadings_num; // 1-30
     uint8_t sendOffset_min;      //0-30
     uint16_t postMax_num; //0 no limit,1~2000  
+    uint16_t sendQueSz_num; //0 none stored.  FFFF no limit  
 } msn01_t;
 #define MSN_ACTIVE msn01_t
 
