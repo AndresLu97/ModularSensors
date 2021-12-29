@@ -64,7 +64,7 @@ const int  POST_MAX_RECS_RANGE_MAX_NUM=2000;
 const int  POST_MAX_RECS_RANGE_MIN_NUM=0;
 
 const char SEND_QUE_SZ_NUM_pm[] EDIY_PROGMEM       = "SEND_QUE_SZ_NUM";
-const int  SEND_QUE_SZ_MAX_NUM = 700;
+const int  SEND_QUE_SZ_MAX_NUM = (MMWGI_SEND_QUE_SZ_NUM_NOP -2);
 const int  SEND_QUE_SZ_MIN_NUM = 0;
 
 const char PROVIDER_TS_pm[] EDIY_PROGMEM           = "PROVIDER_TS";
@@ -874,15 +874,20 @@ static int inihUnhandledFn(const char* section, const char* name,
          } else if (strcmp_P(name,SEND_QUE_SZ_NUM_pm) == 0) {
             // convert  str to num with error checking
             long sendQueSz_num_local = strtol(value, &endptr, 10);
-            if ((sendQueSz_num_local <= SEND_QUE_SZ_MAX_NUM ) && (sendQueSz_num_local >= SEND_QUE_SZ_MIN_NUM)  &&
+            if ((sendQueSz_num_local <= (long unsigned int) SEND_QUE_SZ_MAX_NUM ) && (sendQueSz_num_local >= SEND_QUE_SZ_MIN_NUM)  &&
                 (errno != ERANGE)) 
             {
                 //Null, default below
             } else {
+                if (MMWGI_SEND_QUE_SZ_NUM_NOP==sendQueSz_num_local) {
                 PRINTOUT(
-                    F("NETWORK Set POST_MAX_NUM error; range["), 
-                    SEND_QUE_SZ_MAX_NUM ,SEND_QUE_SZ_MIN_NUM ,F("] read:"),sendQueSz_num_local);
-                    sendQueSz_num_local=MMWGI_SEND_QUE_SZ_NUM_DEF;
+                    F("NETWORK Set SEND_QUE_SZ_NUM disabled"));
+                } else {
+                PRINTOUT(
+                    F("NETWORK Set SEND_QUE_SZ_NUM disabled, error, range["), 
+                    (long unsigned)SEND_QUE_SZ_MAX_NUM ,SEND_QUE_SZ_MIN_NUM ,F("] read:"),sendQueSz_num_local);
+                }
+                sendQueSz_num_local=MMWGI_SEND_QUE_SZ_NUM_DEF;
             }
             epc.app.msn.s.sendQueSz_num = sendQueSz_num_local;
             MS_DBG(F("NETWORK Set SEND_QUE_SZ_NUM: "),sendQueSz_num_local);

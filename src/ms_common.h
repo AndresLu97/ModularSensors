@@ -170,9 +170,13 @@ typedef struct {
 #ifndef MMWGI_POST_MAX_RECS_MUM_DEF
 #define MMWGI_POST_MAX_RECS_MUM_DEF 100
 #endif //MMW_POST_MAX_RECS_MUM_DEF 
+
+//This turns off all queue operation
+#define MMWGI_SEND_QUE_SZ_NUM_NOP 0xFFFF
 #ifndef MMWGI_SEND_QUE_SZ_NUM_DEF
-#define MMWGI_SEND_QUE_SZ_NUM_DEF 2800
+#define MMWGI_SEND_QUE_SZ_NUM_DEF MMWGI_SEND_QUE_SZ_NUM_NOP 
 #endif //MMWGI_SEND_QUE_SZ_NUM_DEF 
+
 typedef struct {
     uint8_t network_type; // 0=apn ,1=wifi network 
     uint8_t apn[MSCN_APN_SZ];           // 32

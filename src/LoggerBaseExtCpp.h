@@ -1005,8 +1005,9 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                             deszq_line[DESLZ_STATUS_POS] = DESLZ_STATUS_UNACK;
                         }
 #endif  // if x
-                        if (desz_pending_records >= _sendQueSz_num) {
+                        if ((desz_pending_records >= _sendQueSz_num)&&(MMWGI_SEND_QUE_SZ_NUM_NOP != _sendQueSz_num )) {
                                 PRINTOUT(F("pubDQTR QuedFull, skip reading. sendQue "),  _sendQueSz_num);
+                                postLogLine((MAX_NUMBER_SENDERS+1),HTTPSTATUS_NC_903);
                         } else {
                             retVal = serzQuedFile.print(deszq_line);
                             if (0 >= retVal) {
@@ -1215,12 +1216,13 @@ inline uint16_t Logger::serzQuedFlushFile() {
     while (0 < (num_char = serzQuedFile.fgets(deszq_line,
                                                 QUEFILE_MAX_LINE))) {
 
-        if (num_lines>=_sendQueSz_num) {
+        if ((num_lines>=_sendQueSz_num)&&(MMWGI_SEND_QUE_SZ_NUM_NOP != _sendQueSz_num )) {
             /*Limit sendQueSz on Copy, implicitly this not on creation 
             This is the first pass at limiting the size of the que by dumping the newest.
             FIFO.
             Future may want to keep the latest readings 
             */
+            postLogLine((MAX_NUMBER_SENDERS+1),HTTPSTATUS_NC_903);
             num_skipped++;
         } else {
 
@@ -1607,10 +1609,14 @@ void Logger::postLogLine(uint8_t instance, int16_t rspParam) {
     postsLogHndl.print(F(",POST,"));
     itoa(rspParam, tempBuffer, 10);
     postsLogHndl.print(tempBuffer);
-    postsLogHndl.print(F(","));
-    itoa(dataPublishers[instance]->getTimerPostTimeout_mS(), tempBuffer, 10);
-    postsLogHndl.print(tempBuffer);
-    postsLogHndl.print(F(","));
+    if (instance < MAX_NUMBER_SENDERS) {
+        postsLogHndl.print(F(","));
+        itoa(dataPublishers[instance]->getTimerPostTimeout_mS(), tempBuffer, 10);
+        postsLogHndl.print(tempBuffer);
+        postsLogHndl.print(F(","));
+    } else {
+        postsLogHndl.print(F(",0,")); 
+    }
     postsLogHndl.print(deszq_line);
 #endif  //#if defined MS_LOGGERBASE_POSTS
 }
@@ -1628,7 +1634,7 @@ void Logger::postLogLine(const char *logMsg,bool addCRNL) {
     }
     char tempBuffer[TEMP_BUFFER_SZ];
     //Print internal time
-    formatDateTime_str(getNowEpochTz)
+    formatDateTime_str(getNowEpochTz())
         .toCharArray(tempBuffer, TEMP_BUFFER_SZ);    
     postsLogHndl.print(tempBuffer);
     postsLogHndl.print(F(",MSG,"));
