@@ -201,9 +201,9 @@ StreamDebugger modemDebugger(modemSerial, STANDARD_SERIAL_OUTPUT);
 // Modem Pins - Describe the physical pin connection of your modem to your board
 #if defined  MS_MAYLFY_1_0
  // MCU pin controlling modem power --- Pin 18 is the power enable pin for the bee socket on Mayfly v1.0,
-const int8_t modemVccPin = -1;   
+const int8_t modemVccPin = 18;   
 // kuldge to always switch on modemVccPwrSwPin Issue #79
-const int8_t modemVccPwrSwPin = 18;
+//const int8_t modemVccPwrSwPin = 18;
 #else 
  //  use -1 if using Mayfly 0.5b or if the bee socket is constantly powered (ie you changed SJ18 on Mayfly1.0 to 3.3v)
 const int8_t modemVccPin =
@@ -1412,11 +1412,11 @@ void setup() {
     dataLogger.setSamplingFeatureUUID(None_STR);
 #endif  // UseModem_PushData
     // Attach the modem and information pins to the logger
-    if (modemVccPwrSwPin > -1) {
+    if (modemVccPin > -1) {
         //For Mayfly1.0 turn on power 
         // Kludge to allow testing
-        pinMode(modemVccPwrSwPin , OUTPUT);
-        digitalWrite(modemVccPwrSwPin, HIGH); //On
+        pinMode(modemVccPin , OUTPUT);
+        digitalWrite(modemVccPin, HIGH); //On
         PRINTOUT(F("---pwr Xbee ON"));
     } 
     dataLogger.attachModem(modemPhy);
@@ -1469,6 +1469,7 @@ void setup() {
     //UbidotsPub.setTimerPostPacing_mS(ps_ram.app.provider.s.ts.timerPostPace_ms);
 #endif // USE_PUB_UBIDOTS
 
+    dataLogger.setSendQueSz_num(ps_ram.app.msn.s.sendQueSz_num); 
     dataLogger.setSendEveryX(ps_ram.app.msn.s.collectReadings_num);
     dataLogger.setSendOffset(ps_ram.app.msn.s.sendOffset_min);  // delay Minutes
     dataLogger.setPostMax_num(ps_ram.app.msn.s.postMax_num); 

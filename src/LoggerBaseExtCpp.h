@@ -1005,12 +1005,16 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                             deszq_line[DESLZ_STATUS_POS] = DESLZ_STATUS_UNACK;
                         }
 #endif  // if x
-                        retVal = serzQuedFile.print(deszq_line);
-                        if (0 >= retVal) {
-                            PRINTOUT(F("pubDQTR serzQuedFil err"), retVal);
+                        if ((desz_pending_records >= _sendQueSz_num)&&(MMWGI_SEND_QUE_SZ_NUM_NOP != _sendQueSz_num )) {
+                                PRINTOUT(F("pubDQTR QuedFull, skip reading. sendQue "),  _sendQueSz_num);
+                                postLogLine((MAX_NUMBER_SENDERS+1),HTTPSTATUS_NC_903);
+                        } else {
+                            retVal = serzQuedFile.print(deszq_line);
+                            if (0 >= retVal) {
+                                PRINTOUT(F("pubDQTR serzQuedFil err"), retVal);
+                            }
+                            desz_pending_records++;  // TODO: njh per publisher
                         }
-                        desz_pending_records++;  // TODO: njh per publisher
-
                         /*TODO njh process
                         if (HTTPSTATUS_NC_901 == rspCode) {
                             MS_DBG(F("pubDQTR abort this
@@ -1165,7 +1169,7 @@ bool Logger::serzQuedCloseFile(bool flush) {
 #define QUEOLD_BASE_FN_STR "QUEDEL01.TXT"
 inline uint16_t Logger::serzQuedFlushFile() {
     /*  The flush algorithim is, 
-     copy unsent lines to a temporary_file.
+     copy unsent lines to a temporary_file up to _sendQueSz_num, and then discard rest
      Assumes serzQuedFile points incoming file
      when complete rename serzQuedFile  to delete_file
      rename temporary_file to serzQuedFile to complete flush
@@ -1176,6 +1180,7 @@ inline uint16_t Logger::serzQuedFlushFile() {
     int16_t retNum;
     int16_t  num_char ;
     uint16_t num_lines = 0;   
+    uint16_t num_skipped=0;
     bool    retBool;
 
     // Check if exists and delete
@@ -1210,19 +1215,33 @@ inline uint16_t Logger::serzQuedFlushFile() {
     MS_DBG(F("seQFF cpy lines across"));
     while (0 < (num_char = serzQuedFile.fgets(deszq_line,
                                                 QUEFILE_MAX_LINE))) {
-        retNum = tgtoutFile.write(deszq_line, num_char);
-        // Squelch last char LF
-        deszq_line[sizeof(deszq_line) - 1] = 0;
-        MS_DBG(deszq_line);
-        if (retNum != num_char) {
-            PRINTOUT(F("seQFF tgtoutFile write3 err"), num_char,
-                        retNum);
-            // sd1_Err("seQFF write4");
-            break;
-        }
-        num_lines++;
-    }
 
+        if ((num_lines>=_sendQueSz_num)&&(MMWGI_SEND_QUE_SZ_NUM_NOP != _sendQueSz_num )) {
+            /*Limit sendQueSz on Copy, implicitly this not on creation 
+            This is the first pass at limiting the size of the que by dumping the newest.
+            FIFO.
+            Future may want to keep the latest readings 
+            */
+            postLogLine((MAX_NUMBER_SENDERS+1),HTTPSTATUS_NC_903);
+            num_skipped++;
+        } else {
+
+            retNum = tgtoutFile.write(deszq_line, num_char);
+            // Squelch last char LF
+            deszq_line[sizeof(deszq_line) - 1] = 0;
+            MS_DBG(deszq_line);
+            if (retNum != num_char) {
+                PRINTOUT(F("seQFF tgtoutFile write3 err"), num_char,
+                            retNum);
+                // sd1_Err("seQFF write4");
+                break;
+            }
+            num_lines++;
+        }
+    }
+    if (num_skipped){ 
+        PRINTOUT(F("seQFF sendQue Size "), _sendQueSz_num, F(",queued"),num_lines, F(",latest readings discarded"),num_skipped);
+    };
     //Cleanup flushed serzQuedFile to del_file as debugging aid
     if (sd1_card_fatfs.exists(queDelFn)) {
         if (!sd1_card_fatfs.remove(queDelFn)) {
@@ -1590,10 +1609,14 @@ void Logger::postLogLine(uint8_t instance, int16_t rspParam) {
     postsLogHndl.print(F(",POST,"));
     itoa(rspParam, tempBuffer, 10);
     postsLogHndl.print(tempBuffer);
-    postsLogHndl.print(F(","));
-    itoa(dataPublishers[instance]->getTimerPostTimeout_mS(), tempBuffer, 10);
-    postsLogHndl.print(tempBuffer);
-    postsLogHndl.print(F(","));
+    if (instance < MAX_NUMBER_SENDERS) {
+        postsLogHndl.print(F(","));
+        itoa(dataPublishers[instance]->getTimerPostTimeout_mS(), tempBuffer, 10);
+        postsLogHndl.print(tempBuffer);
+        postsLogHndl.print(F(","));
+    } else {
+        postsLogHndl.print(F(",0,")); 
+    }
     postsLogHndl.print(deszq_line);
 #endif  //#if defined MS_LOGGERBASE_POSTS
 }
@@ -1611,7 +1634,7 @@ void Logger::postLogLine(const char *logMsg,bool addCRNL) {
     }
     char tempBuffer[TEMP_BUFFER_SZ];
     //Print internal time
-    formatDateTime_str(getNowEpochTz)
+    formatDateTime_str(getNowEpochTz())
         .toCharArray(tempBuffer, TEMP_BUFFER_SZ);    
     postsLogHndl.print(tempBuffer);
     postsLogHndl.print(F(",MSG,"));
