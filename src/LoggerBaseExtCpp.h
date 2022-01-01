@@ -1005,10 +1005,13 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                             deszq_line[DESLZ_STATUS_POS] = DESLZ_STATUS_UNACK;
                         }
 #endif  // if x
+#if defined(USE_PS_modularSensorsNetwork)
                         if ((desz_pending_records >= _sendQueSz_num)&&(MMWGI_SEND_QUE_SZ_NUM_NOP != _sendQueSz_num )) {
                                 PRINTOUT(F("pubDQTR QuedFull, skip reading. sendQue "),  _sendQueSz_num);
                                 postLogLine((MAX_NUMBER_SENDERS+1),HTTPSTATUS_NC_903);
-                        } else {
+                        } else 
+ #endif // USE_PS_modularSensorsNetwork
+                        {
                             retVal = serzQuedFile.print(deszq_line);
                             if (0 >= retVal) {
                                 PRINTOUT(F("pubDQTR serzQuedFil err"), retVal);
@@ -1216,6 +1219,7 @@ inline uint16_t Logger::serzQuedFlushFile() {
     while (0 < (num_char = serzQuedFile.fgets(deszq_line,
                                                 QUEFILE_MAX_LINE))) {
 
+#if defined(USE_PS_modularSensorsNetwork)
         if ((num_lines>=_sendQueSz_num)&&(MMWGI_SEND_QUE_SZ_NUM_NOP != _sendQueSz_num )) {
             /*Limit sendQueSz on Copy, implicitly this not on creation 
             This is the first pass at limiting the size of the que by dumping the newest.
@@ -1224,7 +1228,9 @@ inline uint16_t Logger::serzQuedFlushFile() {
             */
             postLogLine((MAX_NUMBER_SENDERS+1),HTTPSTATUS_NC_903);
             num_skipped++;
-        } else {
+        } else
+#endif // USE_PS_modularSensorsNetwork 
+        {
 
             retNum = tgtoutFile.write(deszq_line, num_char);
             // Squelch last char LF

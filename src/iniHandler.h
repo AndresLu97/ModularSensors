@@ -45,6 +45,7 @@ const char SEND_OFFSET_MIN_pm[] EDIY_PROGMEM    = "SEND_OFFSET_MIN";
 const char INA219M_MA_MULT_pm[] EDIY_PROGMEM     = "INA219M_MA_MULT";
 const char INA219M_V_THRESHLOW_pm[] EDIY_PROGMEM = "INA219M_V_THRESHLOW";
 
+#if defined UseModem_Module
 const char PROVIDER_MMW_pm[] EDIY_PROGMEM           = "PROVIDER_MMW";
 
 const char CLOUD_ID_pm[] EDIY_PROGMEM           = "CLOUD_ID";
@@ -77,6 +78,7 @@ const char PROVIDER_UBIDOTS_pm[] EDIY_PROGMEM       = "PROVIDER_UBIDOTS";
 //KEY_STRINGS
 const char UB_AUTH_TOKEN_pm[] EDIY_PROGMEM = "UB_AUTH_TOKEN";
 const char UB_DEVICE_ID_pm[] EDIY_PROGMEM   = "UB_DEVICE_ID";
+#endif // UseModem_Module
 
 const char SENSORS_pm[] EDIY_PROGMEM = "SENSORS";
 const char index_pm[] EDIY_PROGMEM   = "index";
