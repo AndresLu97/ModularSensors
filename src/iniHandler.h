@@ -873,7 +873,7 @@ static int inihUnhandledFn(const char* section, const char* name,
 
          } else if (strcmp_P(name,SEND_QUE_SZ_NUM_pm) == 0) {
             // convert  str to num with error checking
-            long sendQueSz_num_local = strtol(value, &endptr, 10);
+            long unsigned sendQueSz_num_local = (long unsigned) strtol(value, &endptr, 10);
             if ((sendQueSz_num_local <= (long unsigned int) SEND_QUE_SZ_MAX_NUM ) && (sendQueSz_num_local >= SEND_QUE_SZ_MIN_NUM)  &&
                 (errno != ERANGE)) 
             {
