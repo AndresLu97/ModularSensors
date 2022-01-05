@@ -1,7 +1,5 @@
 /*****************************************************************************
-ms_cfg.h_EC  - ModularSensors Configuration - tgt relative _EC
-Status: 210326: updated cc but not tested
-
+ms_cfg.h_LT5_wifi  - ModularSensors Configuration - tgt _LT5 /WiFi
 Written By:  Neil Hancock www.envirodiy.org/members/neilh20/
 Development Environment: PlatformIO
 Hardware Platform(s): EnviroDIY Mayfly Arduino Datalogger+RS485 Wingboard
@@ -23,7 +21,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 //**************************************************************************
 // This configuration is for a standard Mayfly0.5b
 // Sensors Used - two std to begin then
-#define AnalogProcEC_ACT 1
+//#define AnalogProcEC_ACT 1
 // Power Availability monitoring decisions use LiIon Voltge,
 // Battery Voltage measurements can be derived from a number of sources
 // MAYFLY_BAT_A6  - standard measures Solar Charging or LiIon battry V which ever is greated
@@ -32,16 +30,16 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 // MAYFLY_BAT_DIGI Digi Modem LTE with onboard battery measurement
 // Choices applied to define MAYFLY_BAT_xx 1) Stc3100 2) ExternVolage_ACT 3) Digi Mode 4) MAYFLY_BAT_A6
 
-//#define MAYFLY_BAT_A6 4
-#define MAYFLY_BAT_AA0 2
+#define MAYFLY_BAT_A6 4
+//#define MAYFLY_BAT_AA0 2
 //FUT #define MAYFLY_BAT_DIGI 3
 
 
 //#define ENVIRODIY_MAYFLY_TEMPERATURE 1
 //#define Decagon_CTD_UUID 1
-//#define Insitu_TrollSdi12_UUID 1
+#define Insitu_TrollSdi12_UUID 1
 
-//#define WINGBOARD_KNH002 1
+#define WINGBOARD_KNH002 1
 #if defined WINGBOARD_KNH002
 //This supports RS485 1.9W and STC3100
 //#define USE_STC3100_DD 1
@@ -51,18 +49,18 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 // KellerAcculevel units can be 1 (meter) 2 (feet)
 //#define KellerAcculevel_DepthUnits 2
 
-#define KellerNanolevel_ACT 1
+//#define KellerNanolevel_ACT 1
 #endif //WINGBOARD_KNH002
 
 //Select one of following MAYFLY_BAT_xx as the source for BatterManagement Analysis
 //#define MAYFLY_BAT_CHOICE MAYFLY_BAT_A6
-#define MAYFLY_BAT_CHOICE MAYFLY_BAT_AA0
-//#define MAYFLY_BAT_CHOICE MAYFLY_BAT_STC3100
+//#define MAYFLY_BAT_CHOICE MAYFLY_BAT_AA0
+#define MAYFLY_BAT_CHOICE MAYFLY_BAT_STC3100
 // FUT #define MAYFLY_BAT_CHOICE  MAYFLY_BAT_DIGI
 
 //#define ASONG_AM23XX_UUID 1
 
-// sensors with low power useage
+//Two heavy sensors with power useage
 #define BM_PWR_SENSOR_CONFIG_BUILD_SPECIFIC BM_PWR_LOW_REQ
 
 // Mayfly configuration
@@ -73,7 +71,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define MFName_DEF "Mayfly"
 #define HwVersion_DEF MFVersion_DEF
 #define HwName_DEF MFName_DEF
-#define CONFIGURATION_DESCRIPTION_STR "tu_EC01 Electrical Conductivity"
+#define CONFIGURATION_DESCRIPTION_STR "tu_LT5_wifi LT500"
 
 #define USE_MS_SD_INI 1
 #define USE_PS_EEPROM 1
@@ -116,7 +114,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 
 
 // Instructions: define only one  _Module
-//#define DigiXBeeWifi_Module 1
+#define DigiXBeeWifi_Module 1
 //#warning infoMayflyWithDigiXBeeWiFi
 //#define DigiXBeeCellularTransparent_Module 1
 //#warning infoMayflyWithDigiXBeeCellTransparent
@@ -131,10 +129,10 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 // sync Time Normally enable both of the following. In standalone, disable
 // UseModem_PushData.
 #define UseModem_Module 1
-//#define UseModem_PushData 1
+#define UseModem_PushData 1
 //Select buildtime Publishers  supported. 
 // The persisten resources (EEPROM) are allocated as a baselevel no matter what options 
-//#define USE_PUB_MMW      1
+#define USE_PUB_MMW      1
 //#define USE_PUB_TSMQTT   1
 //#define  USE_PUB_UBIDOTS 1
 
@@ -252,7 +250,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 
 #if defined UseModem_Module
 // This seems to be de-stabilizing Digi S6B
-//#define DIGI_RSSI_UUID "DIGI_RSSI_UUID"
+#define DIGI_RSSI_UUID "DIGI_RSSI_UUID"
 //#define Modem_SignalPercent_UUID    "SignalPercent_UUID"
 #endif  // UseModem_Module
 

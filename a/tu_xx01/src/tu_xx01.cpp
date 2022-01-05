@@ -116,13 +116,9 @@ const int8_t sensorPowerPin =
     22;  // MCU pin controlling main sensor power (-1 if not applicable)
 
 // Create the main processor chip "sensor" - for general metadata
-#if defined  MS_MAYLFY_1_0
-const char*    mcuBoardVersion = "v1.0";
-//const char*    mcuBoardVersion = "v1.1"; //fut for next rev
-#else 
-const char*    mcuBoardVersion = "v0.5b";
-#endif 
-ProcessorStats mcuBoardPhy(mcuBoardVersion);
+const char*    mcuBoardVersion_1_x = "v1.0";
+const char*    mcuBoardVersion_0_5 = "v0.5b";
+ProcessorStats mcuBoardPhy(mcuBoardVersion_1_x);
 
 // ==========================================================================
 //    Settings for Additional Serial Ports
@@ -199,16 +195,10 @@ StreamDebugger modemDebugger(modemSerial, STANDARD_SERIAL_OUTPUT);
 #endif  // STREAMDEBUGGER_DBG
 
 // Modem Pins - Describe the physical pin connection of your modem to your board
-#if defined  MS_MAYLFY_1_0
- // MCU pin controlling modem power --- Pin 18 is the power enable pin for the bee socket on Mayfly v1.0,
-const int8_t modemVccPin = 18;   
-// kuldge to always switch on modemVccPwrSwPin Issue #79
-//const int8_t modemVccPwrSwPin = 18;
-#else 
- //  use -1 if using Mayfly 0.5b or if the bee socket is constantly powered (ie you changed SJ18 on Mayfly1.0 to 3.3v)
-const int8_t modemVccPin =
-    -2;  // MCU pin controlling modem power (-1 if not applicable)
-#endif //MS_MAYLFY_1_0
+const int8_t modemVccPin_mayfly_1_x = 18;  //Pin18 on Xbee  Mayfly v1.0,
+const int8_t modemVccPin_mayfly_0_5  = -2; //No power control rev 0.5b
+#define modemVccPin modemVccPin_mayfly_1_x 
+
 const int8_t modemStatusPin =
     19;  // MCU pin used to read modem status (-1 if not applicable)
 const int8_t modemResetPin = -1;//20? MCU modem reset pin (-1 if unconnected)
@@ -1321,6 +1311,21 @@ void setup() {
     Serial.print((char*)epc.hw_boot.serial_num);
     Serial.println(F("'"));
 #endif  // USE_PS_HW_BOOT
+
+typedef enum {BT_MAYFLY_0_5,BT_MAYFLY_1_0,BT_last} bt_BoardType_t;
+    bt_BoardType_t boardType=BT_MAYFLY_0_5;
+//const char MAYFLY10_pm[] EDIY_PROGMEM   = "1.0";
+//PRINTOUT(F(" Check for '"),MAYFLY10_pm),"'");
+//int strResult=strncmp_P((char*)epc.hw_boot.rev, MAYFLY10_pm,3);
+    int strResult=strncmp((char*)epc.hw_boot.rev, "1.0",3);
+    if (strResult == 0) {
+        boardType=BT_MAYFLY_1_0;
+        Serial.println(F(" Found Mayfly 1.0A3"));
+    } else {
+        PRINTOUT(strResult, F(" Assume Mayfly 0.5b\n\r") );   
+        mcuBoardPhy.setVersion(mcuBoardVersion_0_5); 
+    }
+
     // set up for escape out of battery check if too low.
     // If buttonPress then exit.
     // Button is read inactive as low
@@ -1407,16 +1412,20 @@ void setup() {
     bms.printBatteryThresholds();
 
 #ifdef UseModem_Module
+    if (BT_MAYFLY_0_5==boardType) {
+        modemPhy.setPowerPin(modemVccPin_mayfly_0_5 );
+    }
+
 #if !defined UseModem_PushData
     const char None_STR[] = "None";
     dataLogger.setSamplingFeatureUUID(None_STR);
 #endif  // UseModem_PushData
     // Attach the modem and information pins to the logger
-    if (modemVccPin > -1) {
+    if ( modemPhy.getPowerPin() > -1) {
         //For Mayfly1.0 turn on power 
         // Kludge to allow testing
-        pinMode(modemVccPin , OUTPUT);
-        digitalWrite(modemVccPin, HIGH); //On
+        pinMode(modemPhy.getPowerPin()  , OUTPUT);
+        digitalWrite(modemPhy.getPowerPin() , HIGH); //On
         PRINTOUT(F("---pwr Xbee ON"));
     } 
     dataLogger.attachModem(modemPhy);
