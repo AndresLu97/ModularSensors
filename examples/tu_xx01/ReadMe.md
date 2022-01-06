@@ -23,7 +23,8 @@ ms_cfg.h : LT5_xxx
 Summary: Interfaces an LT500 over SDI-12 and a Keller Acculevel over RS485.
 Requires  an SDI-12 interface board and RS485 wingboard for RS485
 Requires ALL the following UUIDs be configured correctly, with vales from MMW.
-[UUIDs]
+
+[PROVIDER_MMW]
 ITROLL_DEPTH_UUID=        ;Gage height ft LT500 CTD-10_Depth
 ITROLL_TEMP_UUID=         ;Temperature C LT500 Temp CTD-10_Temp
 KellerXxlevel_Height_UUID=;Gage height m Keller_Acculevel_gageHeight
@@ -33,19 +34,29 @@ Batt_UUID=                ;Battery voltage EnviroDIY_Mayfly_Batt
 Volt0_UUID=               ;Battery Voltage accurate 
 SampleNumber_UUID=        ;Sequence number EnviroDIY_Mayfly_SampleNum
 
-[PROVIDER]
+CLOUD_ID= monitormywatershed.org
 REGISTRATION_TOKEN= ; registration token Test06
 SAMPLING_FEATURE=   ; Sampling feature
+TIMER_POST_TOUT_MS=5000; Gateway Timeout (ms)
+TIMER_POST_PACE_MS=1000
 
 There are two variants of the LT5_xx  LT5_lte & LT5_wifi
 The LT5_lte requires the apn set, eg for verizon and Mayfly Xbee LTE board+ Xbee LTE modem condigured
 [NETWORK]
 apn=VZWINTERNET
+;SEND_QUE_SZ_NUM=1000 ; SIZE of QUE to be stored. Def off
+COLLECT_READINGS=8 ; Number of readings to collect before send 0to30
+SEND_OFFSET_MIN=1 ;minutes to wait after collection complete 0-30
+POST_MAX_NUM =200 ;On POSTing MAX NUM after which defered next connection
+
 
 [NETWORK]
 The LT5_wifi requires the following and  have the apn set, and a Digi S6B wifi module 
 WiFiId= XxxSsid ;Add yours
 WiFiPwd= XxxPwd ; Needs to be a protected network.
+COLLECT_READINGS=8 ; Number of readings to collect before send 0to30
+SEND_OFFSET_MIN=1 ;minutes to wait after collection complete 0-30
+POST_MAX_NUM =200 ;On POSTing MAX NUM after which defered next connection
 
 ms_cfg.h : nano  with WiFi 
 ===============
