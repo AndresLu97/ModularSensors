@@ -116,6 +116,7 @@ const int8_t sensorPowerPin =
     22;  // MCU pin controlling main sensor power (-1 if not applicable)
 
 // Create the main processor chip "sensor" - for general metadata
+typedef enum {BT_MAYFLY_0_5, BT_MAYFLY_1_0, BT_last} bt_BoardType_t;
 const char*    mcuBoardVersion_1_x = "v1.0";
 const char*    mcuBoardVersion_0_5 = "v0.5b";
 ProcessorStats mcuBoardPhy(mcuBoardVersion_1_x);
@@ -196,7 +197,7 @@ StreamDebugger modemDebugger(modemSerial, STANDARD_SERIAL_OUTPUT);
 
 // Modem Pins - Describe the physical pin connection of your modem to your board
 const int8_t modemVccPin_mayfly_1_x = 18;  //Pin18 on Xbee  Mayfly v1.0,
-const int8_t modemVccPin_mayfly_0_5  = -2; //No power control rev 0.5b
+const int8_t modemVccPin_mayfly_0_5 = -2; //No power control rev 0.5b
 #define modemVccPin modemVccPin_mayfly_1_x 
 
 const int8_t modemStatusPin =
@@ -1312,18 +1313,13 @@ void setup() {
     Serial.println(F("'"));
 #endif  // USE_PS_HW_BOOT
 
-typedef enum {BT_MAYFLY_0_5,BT_MAYFLY_1_0,BT_last} bt_BoardType_t;
-    bt_BoardType_t boardType=BT_MAYFLY_0_5;
-//const char MAYFLY10_pm[] EDIY_PROGMEM   = "1.0";
-//PRINTOUT(F(" Check for '"),MAYFLY10_pm),"'");
-//int strResult=strncmp_P((char*)epc.hw_boot.rev, MAYFLY10_pm,3);
-    int strResult=strncmp((char*)epc.hw_boot.rev, "1.0",3);
-    if (strResult == 0) {
-        boardType=BT_MAYFLY_1_0;
-        Serial.println(F(" Found Mayfly 1.0A3"));
-    } else {
-        PRINTOUT(strResult, F(" Assume Mayfly 0.5b\n\r") );   
+    bt_BoardType_t boardType=BT_MAYFLY_1_0;
+    if (0==strncmp((char*)epc.hw_boot.rev, "0.5",3)){
+        boardType=BT_MAYFLY_0_5;
+        Serial.println(F(" Board: Found Mayfly 0.5b"));
         mcuBoardPhy.setVersion(mcuBoardVersion_0_5); 
+    } else {
+        PRINTOUT( F(" Board: Assume Mayfly 1.0A3 ") );   
     }
 
     // set up for escape out of battery check if too low.
@@ -1423,7 +1419,6 @@ typedef enum {BT_MAYFLY_0_5,BT_MAYFLY_1_0,BT_last} bt_BoardType_t;
     // Attach the modem and information pins to the logger
     if ( modemPhy.getPowerPin() > -1) {
         //For Mayfly1.0 turn on power 
-        // Kludge to allow testing
         pinMode(modemPhy.getPowerPin()  , OUTPUT);
         digitalWrite(modemPhy.getPowerPin() , HIGH); //On
         PRINTOUT(F("---pwr Xbee ON"));
