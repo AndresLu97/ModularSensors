@@ -255,6 +255,9 @@ DigiXBeeWifi modemXBWF(&modemSerHw, modemVccPin, modemStatusPin,
 DigiXBeeWifi modemPhy = modemXBWF;
 #endif  // DigiXBeeWifi_Module
 
+
+#include <modems/ModemFactory.h>
+
 // ==========================================================================
 // Units conversion functions
 // ==========================================================================
@@ -1408,6 +1411,16 @@ void setup() {
     bms.printBatteryThresholds();
 
 #ifdef UseModem_Module
+    //Need modem specified 
+    // Needs testing
+    #if 0
+    loggerModem    *loggerModemInstance     = NULL;
+    LoggerModemFactory  mdmFactory;   
+    loggerModemInstance = mdmFactory.createInstance(MODEMT_WIFI_DIGI_S6,
+        &modemSerHw, modemVccPin, 
+        modemStatusPin, useCTSforStatus, 
+        modemResetPin, modemSleepRqPin); /**/
+    #endif //0
     if (BT_MAYFLY_0_5==boardType) {
         modemPhy.setPowerPin(modemVccPin_mayfly_0_5 );
     }

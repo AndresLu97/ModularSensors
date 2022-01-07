@@ -155,6 +155,7 @@
 // Included Dependencies
 #include "ModSensorDebugger.h"
 #undef MS_DEBUGGING_STD
+#include "ModemTypes.h"
 #include "LoggerModem.h"
 
 

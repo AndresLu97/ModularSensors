@@ -64,7 +64,7 @@ Summary: Interfaces are Keller Nanolevel over RS485
 Requires an RS485 wingboard for Keller Nanolevel
 requires Wifi Xbee S6b modem and  [NETWORK] WiFiID and WiFiPwd
 requires AOSONG2320 sensor plugged into JP4 I2C socket
-[UUIDs]
+[PROVIDER_MMW]
 KellerXxlevel_Height_UUID=;Gage height Keller_Acculevel_gageHeight
 KellerXxlevel_Temp_UUID=  ;Temperature Keller_Acculevel_Temp
 Air_Humidity_UUID=        ;AOSong_AM2315_Humidity
@@ -78,7 +78,7 @@ DIGI_RSSI_UUID=           381bdd6a-f39f-465a-9f64-ddfcbc0c3e7b ;Digi_Cellular_RS
 
 ms_cfg.h : test
 ===============
-[UUIDs]
+[PROVIDER_MMW]
 requires Wifi Xbee S6b modem and  [NETWORK] WiFiID and WiFiPwd
 requires AOSONG2320 sensor plugged into JP4 I2C socket
 Air_Humidity_UUID=        ;AOSong_AM2315_Humidity

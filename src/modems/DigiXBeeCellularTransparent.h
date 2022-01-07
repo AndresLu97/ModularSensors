@@ -97,6 +97,7 @@
 // Included Dependencies
 #include "ModSensorDebugger.h"
 #undef MS_DEBUGGING_STD
+#include "ModemTypes.h"
 #include "TinyGsmClient.h"
 #undef TINY_GSM_MODEM_HAS_WIFI
 #include "DigiXBee.h"
@@ -153,6 +154,10 @@ class DigiXBeeCellularTransparent : public DigiXBee {
                                 int8_t modemResetPin, int8_t modemSleepRqPin,
                                 const char* apn, const char* user = NULL,
                                 const char* pwd = NULL);
+    DigiXBeeCellularTransparent(Stream* modemStream, int8_t powerPin, 
+                                 int8_t statusPin, bool useCTSStatus,
+                                 int8_t modemResetPin, int8_t modemSleepRqPin);
+
     /**
      * @brief Destroy the Digi XBee Cellular Transparent object - no action
      * needed
