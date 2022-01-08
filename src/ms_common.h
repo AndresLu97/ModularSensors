@@ -150,11 +150,11 @@ typedef struct {
 #define USE_PS_modularSensorsNetwork 1
 #endif  // UseModem_Module
 #if defined(USE_PS_modularSensorsNetwork)
-//MSCN_TYPE_XXX is the Network Type modem 
-#define MSCN_TYPE_NONE 0
+//MSCN_TYPE_XXX is the Network Type modem  - modemTypesCurrent_t 
+/*#define MSCN_TYPE_NONE 0
 #define MSCN_TYPE_CELL 1
 #define MSCN_TYPE_WIFI 2
-#define MSCN_TYPE_LORA 3
+#define MSCN_TYPE_LORA 3 */
 #define MSCN_APN_SZ 32
 #define MSCN_APN_DEF_STR "APN_NONE"
 #define MSCN_WIFI_ID_SZ 32
@@ -178,7 +178,7 @@ typedef struct {
 #endif //MMWGI_SEND_QUE_SZ_NUM_DEF 
 
 typedef struct {
-    uint8_t network_type; // 0=apn ,1=wifi network 
+    uint8_t network_type; // 0=apn ,1=wifi network  - modem type modemTypesCurrent_t 
     uint8_t apn[MSCN_APN_SZ];           // 32
     uint8_t WiFiId[MSCN_WIFI_ID_SZ];    // 32?
     uint8_t WiFiPwd[MSCN_WIFI_PWD_SZ];  // 32??

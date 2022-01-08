@@ -22,11 +22,13 @@ loggerModem   *LoggerModemFactory::createInstance (modemTypesCurrent_t mdmType,
             statusPin, useCTSStatus,
             modemResetPin, modemSleepRqPin);
         break;
+    #ifdef    MODEMT_LTE_SIM7080
     case MODEMT_LTE_SIM7080:
-        /*retPtr = new SIMComSIM7080(modemStream, powerPin, 
+        retPtr = new SIMComSIM7080(modemStream, powerPin, 
             statusPin, useCTSStatus,
-            modemResetPin, modemSleepRqPin); / * */
+            modemResetPin, modemSleepRqPin); 
         break;
+    #endif //MODEMT_LTE_SIM7080
     default: break;
     }
 

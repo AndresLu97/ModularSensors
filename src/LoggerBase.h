@@ -511,6 +511,8 @@ class Logger {
      * @param modem An instance of the loggerModem class
      */
     void attachModem(loggerModem& modem);
+    void attachModem(loggerModem* modem);
+    
     /**
      * @brief Use the attahed loggerModem to synchronize the real-time clock
      * with NIST time servers.

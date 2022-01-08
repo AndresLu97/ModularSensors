@@ -354,7 +354,9 @@ String Logger::getValueStringAtI(uint8_t position_i) {
 void Logger::attachModem(loggerModem& modem) {
     _logModem = &modem;
 }
-
+void Logger::attachModem(loggerModem* modem) {
+    _logModem = modem;
+}
 
 // Takes advantage of the modem to synchronize the clock
 bool Logger::syncRTC() {

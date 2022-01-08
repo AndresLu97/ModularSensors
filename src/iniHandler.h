@@ -312,9 +312,9 @@ static void epcParser() {
             epc.app.msn.s.network_type=MSCN_TYPE_CELL;
             SerialStd.print(F("NETWORK APN was '"));
             SerialStd.print(modemPhy.getApn());
-            modemPhy.setApn(epc_apn, false);
+            //modemPhy.setApn(epc_apn, false);
             SerialStd.print(F("', now set to '"));
-            SerialStd.print(modemPhy.getApn());
+            //SerialStd.print(modemPhy.getApn());
             SerialStd.println("'");
     }
     #endif  // DigiXBeeCellularTransparent_Module
@@ -323,19 +323,19 @@ static void epcParser() {
     if (isalnum(epc_WiFiId1st))
     {
         SerialStd.print(F("NETWORK WiFiId: was '"));
-        SerialStd.print(modemPhy.getWiFiId());
-        modemPhy.setWiFiId(epc_WiFiId, false);
+        //SerialStd.print(modemPhy.getWiFiId());
+        //modemPhy.setWiFiId(epc_WiFiId, false);
         SerialStd.print(F("' now '"));
-        SerialStd.print(modemPhy.getWiFiId());
+        //SerialStd.print(modemPhy.getWiFiId());
         SerialStd.println("'");
     } 
     if( isalnum(epc_WiFiPwd1st)) 
     {
             SerialStd.print(F("NETWORK WiFiPwd: was '"));
-            SerialStd.print(modemPhy.getWiFiPwd());
-            modemPhy.setWiFiPwd(epc_WiFiPwd, false);
+            //SerialStd.print(modemPhy.getWiFiPwd());
+            //modemPhy.setWiFiPwd(epc_WiFiPwd, false);
             SerialStd.print(F("' now '"));
-            SerialStd.print(modemPhy.getWiFiPwd());
+            //SerialStd.print(modemPhy.getWiFiPwd());
             SerialStd.println("'");
     }
     #endif // DigiXBeeWifi_Module
@@ -806,21 +806,25 @@ static int inihUnhandledFn(const char* section, const char* name,
         }
     } else if (strcmp_P(section, NETWORK_pm) == 0) {
         // NETWORK PARTS
-#if defined DigiXBeeCellularTransparent_Module
+#if 1//defined DigiXBeeCellularTransparent_Module
         if (strcmp_P(name, apn_pm) == 0) {
             #if defined USE_PS_EEPROM
+            epc.app.msn.s.network_type=MODEMT_LTE_DIGI_CATM1; //modemTypesCurrent_t 
             strcpy(epc_apn, value);
+            MS_DBG(F("Use  Cell  apn"), value);
             #endif  // USE_PS_EEPROM
         } else
 #endif  // DigiXBeeCellularTransparent_Module
 
-#if defined DigiXBeeWifi_Module
+#if 1//defined DigiXBeeWifi_Module
         if (strcmp_P(name, WiFiId_pm) == 0) 
         {
-            //Set the internet type as WIFI - future may be configurable
-            epc.app.msn.s.network_type=MSCN_TYPE_WIFI;
+            //Set the Network  type as WIFI -
+            #if defined USE_PS_EEPROM
+            epc.app.msn.s.network_type=MODEMT_WIFI_DIGI_S6; //modemTypesCurrent_t 
             strcpy(epc_WiFiId , value);
             MS_DBG(F("Use Ini WiFiId"), value);
+            #endif //USE_PS_EEPROM
         } else if (strcmp_P(name, WiFiPwd_pm) == 0) {
             //Expect there to be WiFiId
             strcpy((char*)epc.app.msn.s.WiFiPwd, value);
@@ -1060,7 +1064,7 @@ void localAppStorageInit()
                 (char*)F("Factory default"));
 
     #if defined UseModem_Module
-    epc.app.msn.s.network_type= MSCN_TYPE_NONE;
+    epc.app.msn.s.network_type= MODEMT_NONE;
     strcpy_P((char*)epc.app.msn.s.apn,(char*)F(MSCN_APN_DEF_STR));
     strcpy_P((char*)epc.app.msn.s.WiFiId,(char*)F(MSCN_WIFIID_DEF_STR));  
     strcpy_P((char*)epc.app.msn.s.WiFiPwd,(char*)F(MSCN_WIFIPWD_DEF_STR)); 
