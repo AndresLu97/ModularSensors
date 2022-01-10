@@ -131,7 +131,7 @@ MaximDS3231 ds3231(1);
 const int8_t ECpwrPin   = ECpwrPin_DEF;
 const int8_t ECdataPin1 = ECdataPin1_DEF;
 
-#define EC_RELATIVE_OHMS 100000
+#define EC_RELATIVE_OHMS 2000
 AnalogElecConductivityM analogEC_phy(ECpwrPin, ECdataPin1, EC_RELATIVE_OHMS);
 /** End [AnalogElecConductivity] */
 #endif  // AnalogProcEC_ACT
