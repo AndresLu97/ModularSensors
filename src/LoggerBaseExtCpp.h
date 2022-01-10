@@ -984,7 +984,9 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                 deszRdelStart();
                 // MS_START_DEBUG_TIMER;
                 tmrGateway_ms = millis();
+                uint32_t tmrThisPublish_ms;
                 while ((dslStatus = deszRdelLine())) {
+                    tmrThisPublish_ms = millis();
                     if (internetPresent) {
                         rspCode = dataPublishers[i]->publishData();
                     } else {
@@ -994,7 +996,7 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                     watchDogTimer.resetWatchDog();
                     // MS_DBG(F("Rsp"), rspCode, F(", in"),
                     // MS_PRINT_DEBUG_TIMER,    F("ms\n"));
-                    postLogLine(i, rspCode);
+                    postLogLine( (millis() -tmrThisPublish_ms), rspCode);
 
                     if (HTTPSTATUS_CREATED_201 != rspCode) {
 #define DESLZ_STATUS_UNACK '1'
@@ -1008,7 +1010,7 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
 #if defined(USE_PS_modularSensorsNetwork)
                         if ((desz_pending_records >= _sendQueSz_num)&&(MMWGI_SEND_QUE_SZ_NUM_NOP != _sendQueSz_num )) {
                                 PRINTOUT(F("pubDQTR QuedFull, skip reading. sendQue "),  _sendQueSz_num);
-                                postLogLine((MAX_NUMBER_SENDERS+1),HTTPSTATUS_NC_903);
+                                postLogLine(0,rspCode); //Log skipped readings
                         } else 
  #endif // USE_PS_modularSensorsNetwork
                         {
@@ -1597,7 +1599,7 @@ void        Logger::postLogClose() {
 #endif  // MS_LOGGERBASE_POSTS
 }
 
-void Logger::postLogLine(uint8_t instance, int16_t rspParam) {
+void Logger::postLogLine(uint32_t tmr_ms, int16_t rspParam) {
 // If debug ...keep record
 #if defined MS_LOGGERBASE_POSTS
 #if 0
@@ -1615,14 +1617,10 @@ void Logger::postLogLine(uint8_t instance, int16_t rspParam) {
     postsLogHndl.print(F(",POST,"));
     itoa(rspParam, tempBuffer, 10);
     postsLogHndl.print(tempBuffer);
-    if (instance < MAX_NUMBER_SENDERS) {
         postsLogHndl.print(F(","));
-        itoa(dataPublishers[instance]->getTimerPostTimeout_mS(), tempBuffer, 10);
+        itoa(tmr_ms, tempBuffer, 10);
         postsLogHndl.print(tempBuffer);
         postsLogHndl.print(F(","));
-    } else {
-        postsLogHndl.print(F(",0,")); 
-    }
     postsLogHndl.print(deszq_line);
 #endif  //#if defined MS_LOGGERBASE_POSTS
 }
