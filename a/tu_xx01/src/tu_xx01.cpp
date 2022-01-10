@@ -1417,8 +1417,8 @@ void setup() {
 #ifdef UseModem_Module
     //Instaniate modem  
     LoggerModemFactory  mdmFactory;
-    modemTypesCurrent_t mdmType = MODEMT_WIFI_DIGI_S6;   
-    loggerModemPhyInst = mdmFactory.createInstance(MODEMT_WIFI_DIGI_S6,
+    modemTypesCurrent_t mdmType = epc_network; 
+    loggerModemPhyInst = mdmFactory.createInstance(mdmType,
         &modemSerHw, modemVccPin, 
         modemStatusPin, useCTSforStatus, 
         modemResetPin, modemSleepRqPin); /**/
@@ -1431,14 +1431,17 @@ void setup() {
         EnviroDIYPOST.begin(dataLogger, &(loggerModemPhyDigiWifi->gsmClient),
                         ps_ram.app.provider.s.ed.registration_token,
                         ps_ram.app.provider.s.ed.sampling_feature);
+        PRINTOUT(F("Modem config set as WIFI_DIGI_S6"));
         break;
     case MODEMT_LTE_DIGI_CATM1:
         loggerModemPhyDigiCell->setApn(epc_apn, false);
         EnviroDIYPOST.begin(dataLogger, &(loggerModemPhyDigiCell->gsmClient),
                         ps_ram.app.provider.s.ed.registration_token,
                         ps_ram.app.provider.s.ed.sampling_feature);
+        PRINTOUT(F("Modem config set as LTE_DIGI_CATM1"));
         break;
     default: break;
+        PRINTOUT(F("Modem config ERR** "),mdmType);
     };
 
     if (BT_MAYFLY_0_5==boardType) {

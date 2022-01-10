@@ -189,6 +189,7 @@ typedef struct {
 } msn01_t;
 #define MSN_ACTIVE msn01_t
 
+#define epc_network         epc.app.msn.s.network_type
 #define epc_apn      (char*)epc.app.msn.s.apn
 #define epc_apn1st          epc.app.msn.s.apn[0]
 #define epc_WiFiId   (char*)epc.app.msn.s.WiFiId
