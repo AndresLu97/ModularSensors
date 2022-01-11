@@ -305,42 +305,12 @@ static void epcParser() {
     Logger::setLoggerTimeZone(epc.app.msc.s.time_zone);
 
     /// Used  in uSD print epc.app.msc.s.geolocation_id
-
-    #if defined DigiXBeeCellularTransparent_Module
-    if (isalnum(epc_apn1st))
-    {
-            epc.app.msn.s.network_type=MSCN_TYPE_CELL;
-            SerialStd.print(F("NETWORK APN was '"));
-            SerialStd.print(modemPhy.getApn());
-            //modemPhy.setApn(epc_apn, false);
-            SerialStd.print(F("', now set to '"));
-            //SerialStd.print(modemPhy.getApn());
-            SerialStd.println("'");
-    }
-    #endif  // DigiXBeeCellularTransparent_Module
-    #if defined DigiXBeeWifi_Module
-    // cheeck for WiFiId and WiFiPwd
-    if (isalnum(epc_WiFiId1st))
-    {
-        SerialStd.print(F("NETWORK WiFiId: was '"));
-        //SerialStd.print(modemPhy.getWiFiId());
-        //modemPhy.setWiFiId(epc_WiFiId, false);
-        SerialStd.print(F("' now '"));
-        //SerialStd.print(modemPhy.getWiFiId());
-        SerialStd.println("'");
-    } 
-    if( isalnum(epc_WiFiPwd1st)) 
-    {
-            SerialStd.print(F("NETWORK WiFiPwd: was '"));
-            //SerialStd.print(modemPhy.getWiFiPwd());
-            //modemPhy.setWiFiPwd(epc_WiFiPwd, false);
-            SerialStd.print(F("' now '"));
-            //SerialStd.print(modemPhy.getWiFiPwd());
-            SerialStd.println("'");
-    }
-    #endif // DigiXBeeWifi_Module
-
     #if defined UseModem_Module
+    PRINTOUT(F("NETWORK type: "),  epc_network);
+    PRINTOUT(F("NETWORK apn: "),  epc_apn);
+    PRINTOUT(F("NETWORK WiFiId : "),  epc_WiFiId);
+    PRINTOUT(F("NETWORK WiFiPwd: "),  epc_WiFiPwd);
+
     PRINTOUT(F("NETWORK COLLECT_READINGS"),epc.app.msn.s.collectReadings_num );
     PRINTOUT(F("NETWORK SEND_OFFSET_MIN"),epc.app.msn.s.sendOffset_min);
     PRINTOUT(F("NETWORK POST_MAX_NUM"),epc.app.msn.s.postMax_num);
