@@ -228,40 +228,6 @@ const bool useCTSforStatus =
 #define loggerModemPhyDigiCell ((DigiXBeeCellularTransparent *) loggerModemPhyInst)
 #endif             // UseModem_Module
 
-#if 0//def DigiXBeeCellularTransparent_Module
-// For any Digi Cellular XBee's
-// NOTE:  The u-blox based Digi XBee's (3G global and LTE-M global) can be used
-// in either bypass or transparent mode, each with pros and cons
-// The Telit based Digi XBees (LTE Cat1) can only use this mode.
-#include <modems/DigiXBeeCellularTransparent.h>
-// NOTE:  If possible, use the STATUS/SLEEP_not (XBee pin 13) for status, but
-// the CTS pin can also be used if necessary
-DigiXBeeCellularTransparent modemXBCT(&modemSerHw, modemVccPin, modemStatusPin,
-                                      useCTSforStatus, modemResetPin,
-                                      modemSleepRqPin, apn_def);
-// Create an extra reference to the modem by a generic name (not necessary)
-DigiXBeeCellularTransparent modemPhy = modemXBCT;
-#endif  // DigiXBeeCellularTransparent_Module
-
-#if 0 //def DigiXBeeWifi_Module
-// For the Digi Wifi XBee (S6B)
-
-#include <modems/DigiXBeeWifi.h>
-//const long modemBaud = 9600;  // All XBee's use 9600 by default
-//useCTSforStatus =  false;  // true? Flag to use the XBee CTS pin for status
-// NOTE:  If possible, use the STATUS/SLEEP_not (XBee pin 13) for status, but
-// the CTS pin can also be used if necessary
-// useCTSforStatus is overload with  useCTSforStatus!-> loggerModem.statusLevel
-// for detecting Xbee SleepReqAct==1
-DigiXBeeWifi modemXBWF(&modemSerHw, modemVccPin, modemStatusPin,
-                       useCTSforStatus, modemResetPin, modemSleepRqPin,
-                       wifiId_def, wifiPwd_def);
-// Create an extra reference to the modem by a generic name (not necessary)
-DigiXBeeWifi modemPhy = modemXBWF;
-#endif  // DigiXBeeWifi_Module
-
-
-
 // ==========================================================================
 // Units conversion functions
 // ==========================================================================
@@ -1417,27 +1383,23 @@ void setup() {
 #ifdef UseModem_Module
     //Instaniate modem  
     LoggerModemFactory  mdmFactory;
-    modemTypesCurrent_t mdmType = epc_network; 
-    loggerModemPhyInst = mdmFactory.createInstance(mdmType,
+    uint8_t mdmType = epc_network; 
+    loggerModemPhyInst = mdmFactory.createInstance((modemTypesCurrent_t)mdmType,
         &modemSerHw, modemVccPin, 
         modemStatusPin, useCTSforStatus, 
         modemResetPin, modemSleepRqPin); /**/
-
+    Client* inGsmClient;
     // Further runtime configuration of the Modem
     switch (mdmType) {
     case MODEMT_WIFI_DIGI_S6:
         loggerModemPhyDigiWifi->setWiFiId(epc_WiFiId, false);
         loggerModemPhyDigiWifi->setWiFiPwd(epc_WiFiPwd,false);
-        EnviroDIYPOST.begin(dataLogger, &(loggerModemPhyDigiWifi->gsmClient),
-                        ps_ram.app.provider.s.ed.registration_token,
-                        ps_ram.app.provider.s.ed.sampling_feature);
+        inGsmClient =  &(loggerModemPhyDigiWifi->gsmClient);
         PRINTOUT(F("Modem config set as WIFI_DIGI_S6"));
         break;
     case MODEMT_LTE_DIGI_CATM1:
         loggerModemPhyDigiCell->setApn(epc_apn, false);
-        EnviroDIYPOST.begin(dataLogger, &(loggerModemPhyDigiCell->gsmClient),
-                        ps_ram.app.provider.s.ed.registration_token,
-                        ps_ram.app.provider.s.ed.sampling_feature);
+        inGsmClient =  &(loggerModemPhyDigiCell->gsmClient);
         PRINTOUT(F("Modem config set as LTE_DIGI_CATM1"));
         break;
     default: break;
@@ -1483,13 +1445,16 @@ void setup() {
     dataLogger.begin();
 #if defined UseModem_PushData
 #if defined USE_PUB_MMW
+    EnviroDIYPOST.begin(dataLogger, inGsmClient, 
+                        ps_ram.app.provider.s.ed.registration_token,
+                        ps_ram.app.provider.s.ed.sampling_feature);
     EnviroDIYPOST.setDIYHost(ps_ram.app.provider.s.ed.cloudId);
     EnviroDIYPOST.setQuedState(true);
     EnviroDIYPOST.setTimerPostTimeout_mS(ps_ram.app.provider.s.ed.timerPostTout_ms);
     EnviroDIYPOST.setTimerPostPacing_mS(ps_ram.app.provider.s.ed.timerPostPace_ms);
 #endif //USE_PUB_MMW
 #if defined USE_PUB_TSMQTT
-    TsMqttPub.begin(dataLogger, &modemPhy.gsmClient, 
+    TsMqttPub.begin(dataLogger, inGsmClient , 
                 ps_ram.app.provider.s.ts.thingSpeakMQTTKey,
                 ps_ram.app.provider.s.ts.thingSpeakChannelID, 
                 ps_ram.app.provider.s.ts.thingSpeakChannelKey);
@@ -1499,7 +1464,7 @@ void setup() {
     //TsMqttPub.setTimerPostPacing_mS(ps_ram.app.provider.s.ts.timerPostPace_ms);
 #endif// USE_PUB_TSMQTT
 #if defined USE_PUB_UBIDOTS
-    UbidotsPub.begin(dataLogger, &modemPhy.gsmClient,
+    UbidotsPub.begin(dataLogger, inGsmClient ,
                         ps_ram.app.provider.s.ub.authentificationToken,
                         ps_ram.app.provider.s.ub.deviceID);
     //FUT: njh tbd extensions for Reliable delivery
