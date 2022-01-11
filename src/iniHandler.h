@@ -806,7 +806,7 @@ static int inihUnhandledFn(const char* section, const char* name,
         }
     } else if (strcmp_P(section, NETWORK_pm) == 0) {
         // NETWORK PARTS
-#if 1//defined DigiXBeeCellularTransparent_Module
+#if defined UseModem_Module
         if (strcmp_P(name, apn_pm) == 0) {
             #if defined USE_PS_EEPROM
             epc.app.msn.s.network_type=MODEMT_LTE_DIGI_CATM1; //modemTypesCurrent_t 
@@ -814,9 +814,6 @@ static int inihUnhandledFn(const char* section, const char* name,
             MS_DBG(F("Use  Cell  apn"), value);
             #endif  // USE_PS_EEPROM
         } else
-#endif  // DigiXBeeCellularTransparent_Module
-
-#if 1//defined DigiXBeeWifi_Module
         if (strcmp_P(name, WiFiId_pm) == 0) 
         {
             //Set the Network  type as WIFI -
@@ -830,8 +827,6 @@ static int inihUnhandledFn(const char* section, const char* name,
             strcpy((char*)epc.app.msn.s.WiFiPwd, value);
             MS_DBG(F("Use Ini WiFiPwd"), value);
         } else
-#endif  // DigiXBeeWifi_Module
-#if defined UseModem_Module
         if (strcmp_P(name, COLLECT_READINGS_pm) == 0) {
             // convert  str to num with error checking
             long collect_readings_local = strtol(value, &endptr, 10);
