@@ -1484,31 +1484,16 @@ void setup() {
 #define LiIon_BAT_REQ BM_PWR_HEAVY_REQ 
 #if defined UseModem_Module && !defined NO_FIRST_SYNC_WITH_NIST
 
+    // The comms module  is supported and its expected to be configured.
+    // ToDo Test - there may be a runtime use=case where it exists but shouldn't be used?
     if (batteryCheck(LiIon_BAT_REQ, false,2)) 
     {
         MS_DBG(F("Sync with NIST "), bms.getBatteryVm1(),
            F("Req"), LiIon_BAT_REQ, F("Got"),
            bms.isBatteryStatusAbove(true, LiIon_BAT_REQ));
 
-#if defined DigiXBeeWifi_Module
-        // For the WiFi module, it may not be configured if no ms_cfg.ini file
-        // present,
-        // this supports the standalone logger, but need to get time at
-        // factory/ms_cfg.ini present
-        uint8_t cmp_result = loggerModemPhyDigiWifi->getWiFiId().compareTo(wifiId_def);
-        // MS_DBG(F("cmp_result="),cmp_result,"
-        // ",modemPhy.getWiFiId(),"/",wifiId_def);
-        if (!(cmp_result == 0)) {
-             PRINTOUT(F("Sync with NIST over WiFi network "), loggerModemPhyDigiWifi->getWiFiId());
-            dataLogger.syncRTC();  // Will also set up the modemPhy
-        }
-#else
-        MS_DBG(F("Sync with NIST "));
-        dataLogger.syncRTC();  // Will also set up the modemPhy
-#endif  // DigiXBeeWifi_Module
-        MS_DBG(F("Set modem to sleep"));
-        loggerModemPhyInst->disconnectInternet();
-        loggerModemPhyInst->modemSleepPowerDown();
+        bool syncResult = dataLogger.syncRTC();  // Will also set up the modemPhy
+        PRINTOUT(F("Sync="),syncResult ,F("with NIST over "), loggerModemPhyInst->getModemName());
     } else {
         MS_DBG(F("Skipped sync with NIST as not enough power "), bms.getBatteryVm1(),
            F("Req"), LiIon_BAT_REQ );
