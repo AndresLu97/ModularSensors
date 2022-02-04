@@ -1467,7 +1467,7 @@ bool Logger::deszqNextCh(void) {
     deszq_nextCharSz  = strlen(deszq_nextChar);
     if ((0 == deszq_nextCharSz)) {
         // Found end of line
-        MS_DEEP_DBG(F("dSRN unexpected EOL "));
+        MS_DBG(F("dSRN unexpected EOL "));
         return false;
     } else if (NULL == nextCharEnd) {
         // Found <value>EOF ~ nextSr_sz is valid
@@ -1550,19 +1550,15 @@ bool Logger::postLogOpen(const char* postLogNam_str) {
     bool retVal = false;
 #if defined MS_LOGGERBASE_POSTS
     // Generate the file name from logger ID and date
-    String fileName = String(postLogNam_str);
-
     // Create rotating log of 4 chars YYMM - formatDateTime is YYYY MM DD
      String nameTemp = formatDateTime_str(getNowEpochTz());
 
     // Drop middle _ and get YYMM
-    fileName += nameTemp.substring(2, 4) + nameTemp.substring(5, 7);
-
-    fileName += ".log";
-    MS_DBG(F("PLO postLog file"), fileName);
+    String fileName = String(postLogNam_str + nameTemp.substring(2, 4) + nameTemp.substring(5, 7) + ".log");
 
     // Convert the string filename to a character file name for SdFat
-    uint8_t fileNameLength = fileName.length() + 1;
+    uint16_t fileNameLength = fileName.length()+2;
+    MS_DBG(F("PLO postLog file"), fileName, F("res len"),fileNameLength);
     char    charFileName[fileNameLength];
     fileName.toCharArray(charFileName, fileNameLength);
 
