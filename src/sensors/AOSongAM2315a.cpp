@@ -1,41 +1,41 @@
 /**
- * @file AOSongAM2315.cpp
+ * @file AOSongAM2315a.cpp
  * @copyright 2020 Stroud Water Research Center
  * Part of the EnviroDIY ModularSensors library for Arduino
  * @author Sara Geleskie Damiano <sdamiano@stroudcenter.org>
  *
- * @brief Implements the AOSongAM2315 class.
+ * @brief Implements the AOSongAM2315a class.
  */
 
-#include "AOSongAM2315.h"
+#include "AOSongAM2315a.h"
 
 
 // The constructor - because this is I2C, only need the power pin
 // This sensor has a set I2C address of 0XB8
-AOSongAM2315::AOSongAM2315(TwoWire* theI2C, int8_t powerPin,
+AOSongAM2315a::AOSongAM2315a(TwoWire* theI2C, int8_t powerPin,
                            uint8_t measurementsToAverage)
-    : Sensor("AOSongAM2315", AM2315_NUM_VARIABLES, AM2315_WARM_UP_TIME_MS,
+    : Sensor("AOSongAM2315a", AM2315_NUM_VARIABLES, AM2315_WARM_UP_TIME_MS,
              AM2315_STABILIZATION_TIME_MS, AM2315_MEASUREMENT_TIME_MS, powerPin,
              -1, measurementsToAverage) {
     _i2c = theI2C;
     am2315ptr = new Adafruit_AM2315(_i2c);
 }
-AOSongAM2315::AOSongAM2315(int8_t powerPin, uint8_t measurementsToAverage)
-    : Sensor("AOSongAM2315", AM2315_NUM_VARIABLES, AM2315_WARM_UP_TIME_MS,
+AOSongAM2315a::AOSongAM2315a(int8_t powerPin, uint8_t measurementsToAverage)
+    : Sensor("AOSongAM2315a", AM2315_NUM_VARIABLES, AM2315_WARM_UP_TIME_MS,
              AM2315_STABILIZATION_TIME_MS, AM2315_MEASUREMENT_TIME_MS, powerPin,
              -1, measurementsToAverage, AM2315_INC_CALC_VARIABLES) {
     _i2c = &Wire;
     am2315ptr = new Adafruit_AM2315(_i2c);
 }
-AOSongAM2315::~AOSongAM2315() {}
+AOSongAM2315a::~AOSongAM2315a() {}
 
 
-String AOSongAM2315::getSensorLocation(void) {
+String AOSongAM2315a::getSensorLocation(void) {
     return F("I2C_0xB8");
 }
 
 
-bool AOSongAM2315::setup(void) {
+bool AOSongAM2315a::setup(void) {
     Wire.begin();  // Start the wire library (sensor power not required)
     // Eliminate any potential extra waits in the wire library
     // These waits would be caused by a readBytes or parseX being called
@@ -49,7 +49,7 @@ bool AOSongAM2315::setup(void) {
 }
 
 
-bool AOSongAM2315::addSingleMeasurementResult(void) {
+bool AOSongAM2315a::addSingleMeasurementResult(void) {
     // Initialize float variables
     float temp_val  = -9999;
     float humid_val = -9999;

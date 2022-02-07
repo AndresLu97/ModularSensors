@@ -1,5 +1,5 @@
 /**
- * @file AOSongAM2315.h
+ * @file AOSongAM2315a.h
  * @copyright 2020 Stroud Water Research Center
  * Part of the EnviroDIY ModularSensors library for Arduino
  * @author Sara Geleskie Damiano <sdamiano@stroudcenter.org>
@@ -52,14 +52,14 @@
 /* clang-format on */
 
 // Header Guards
-#ifndef SRC_SENSORS_AOSONGAM2315_H_
-#define SRC_SENSORS_AOSONGAM2315_H_
+#ifndef SRC_SENSORS_AOSONGAM2315A_H_
+#define SRC_SENSORS_AOSONGAM2315A_H_
 
 // Debugging Statement
-// #define MS_AOSONGAM2315_DEBUG
+// #define MS_AOSONGAM2315A_DEBUG
 
-#ifdef MS_AOSONGAM2315_DEBUG
-#define MS_DEBUGGING_STD "AOSongAM2315"
+#ifdef MS_AOSONGAM2315A_DEBUG
+#define MS_DEBUGGING_STD "AOSongAM2315a"
 #endif
 
 // Included Dependencies
@@ -101,7 +101,7 @@
  * - Range is 0 to 100% RH
  * - Accuracy is ± 2 % RH at 25°C
  *
- * {{ @ref AOSongAM2315_Humidity::AOSongAM2315_Humidity }}
+ * {{ @ref AOSongAM2315a_Humidity::AOSongAM2315a_Humidity }}
  */
 /**@{*/
 /// @brief Decimals places in string representation; humidity should have 1 (0.1
@@ -128,7 +128,7 @@
  * - Range is -40°C to +125°C
  * - Accuracy is ±0.1°C
  *
- * {{ @ref AOSongAM2315_Temp::AOSongAM2315_Temp }}
+ * {{ @ref AOSongAM2315a_Temp::AOSongAM2315a_Temp }}
  */
 /**@{*/
 /// @brief Decimals places in string representation; temperature should have 1.
@@ -154,10 +154,10 @@
  * @brief The Sensor sub-class for the [AOSong AM2315](@ref sensor_am2315).
  */
 /* clang-format on */
-class AOSongAM2315 : public Sensor {
+class AOSongAM2315a : public Sensor {
  public:
     /**
-     * @brief Construct a new AOSongAM2315 object using a secondary *hardware*
+     * @brief Construct a new AOSongAM2315a object using a secondary *hardware*
      * I2C instance.
      *
      * This is only applicable to SAMD boards that are able to have multiple
@@ -178,10 +178,10 @@ class AOSongAM2315 : public Sensor {
      * average before giving a "final" result from the sensor; optional with a
      * default value of 1.
      */
-    AOSongAM2315(TwoWire* theI2C, int8_t powerPin,
+    AOSongAM2315a(TwoWire* theI2C, int8_t powerPin,
                  uint8_t measurementsToAverage = 1);
     /**
-     * @brief Construct a new AOSongAM2315 object using the primary hardware I2C
+     * @brief Construct a new AOSongAM2315a object using the primary hardware I2C
      * instance.
      *
      * Because this is I2C and has only 1 possible address (0xB8), we only need
@@ -197,11 +197,11 @@ class AOSongAM2315 : public Sensor {
      * average before giving a "final" result from the sensor; optional with a
      * default value of 1.
      */
-    explicit AOSongAM2315(int8_t powerPin, uint8_t measurementsToAverage = 1);
+    explicit AOSongAM2315a(int8_t powerPin, uint8_t measurementsToAverage = 1);
     /**
-     * @brief Destroy the AOSongAM2315 object - no action needed.
+     * @brief Destroy the AOSongAM2315a object - no action needed.
      */
-    ~AOSongAM2315();
+    ~AOSongAM2315a();
 
     /**
      * @brief Report the I2C address of the AM2315 - which is always 0xB8.
@@ -244,39 +244,39 @@ class AOSongAM2315 : public Sensor {
  * [AOSong AM2315](@ref sensor_am2315).
  */
 /* clang-format on */
-class AOSongAM2315_Humidity : public Variable {
+class AOSongAM2315a_Humidity : public Variable {
  public:
     /**
-     * @brief Construct a new AOSongAM2315_Humidity object.
+     * @brief Construct a new AOSongAM2315a_Humidity object.
      *
-     * @param parentSense The parent AOSongAM2315 providing the result
+     * @param parentSense The parent AOSongAM2315a providing the result
      * values.
      * @param uuid A universally unique identifier (UUID or GUID) for the
      * variable; optional with the default value of an empty string.
      * @param varCode A short code to help identify the variable in files;
      * optional with a default value of "AM2315Humidity".
      */
-    explicit AOSongAM2315_Humidity(
-        AOSongAM2315* parentSense, const char* uuid = "",
+    explicit AOSongAM2315a_Humidity(
+        AOSongAM2315a* parentSense, const char* uuid = "",
         const char* varCode = AM2315_HUMIDITY_DEFAULT_CODE)
         : Variable(parentSense, (const uint8_t)AM2315_HUMIDITY_VAR_NUM,
                    (uint8_t)AM2315_HUMIDITY_RESOLUTION,
                    AM2315_HUMIDITY_VAR_NAME, AM2315_HUMIDITY_UNIT_NAME, varCode,
                    uuid) {}
     /**
-     * @brief Construct a new AOSongAM2315_Humidity object.
+     * @brief Construct a new AOSongAM2315a_Humidity object.
      *
-     * @note This must be tied with a parent AOSongAM2315 before it can be used.
+     * @note This must be tied with a parent AOSongAM2315a before it can be used.
      */
-    AOSongAM2315_Humidity()
+    AOSongAM2315a_Humidity()
         : Variable((const uint8_t)AM2315_HUMIDITY_VAR_NUM,
                    (uint8_t)AM2315_HUMIDITY_RESOLUTION,
                    AM2315_HUMIDITY_VAR_NAME, AM2315_HUMIDITY_UNIT_NAME,
                    AM2315_HUMIDITY_DEFAULT_CODE) {}
     /**
-     * @brief Destroy the AOSongAM2315_Humidity object - no action needed.
+     * @brief Destroy the AOSongAM2315a_Humidity object - no action needed.
      */
-    ~AOSongAM2315_Humidity() {}
+    ~AOSongAM2315a_Humidity() {}
 };
 
 
@@ -287,36 +287,36 @@ class AOSongAM2315_Humidity : public Variable {
  * [AOSong AM2315](@ref sensor_am2315).
  */
 /* clang-format on */
-class AOSongAM2315_Temp : public Variable {
+class AOSongAM2315a_Temp : public Variable {
  public:
     /**
-     * @brief Construct a new AOSongAM2315_Temp object.
+     * @brief Construct a new AOSongAM2315a_Temp object.
      *
-     * @param parentSense The parent AOSongAM2315 providing the result
+     * @param parentSense The parent AOSongAM2315a providing the result
      * values.
      * @param uuid A universally unique identifier (UUID or GUID) for the
      * variable; optional with the default value of an empty string.
      * @param varCode A short code to help identify the variable in files;
      * optional with a default value of "AM2315Temp".
      */
-    explicit AOSongAM2315_Temp(AOSongAM2315* parentSense, const char* uuid = "",
+    explicit AOSongAM2315a_Temp(AOSongAM2315a* parentSense, const char* uuid = "",
                                const char* varCode = AM2315_TEMP_DEFAULT_CODE)
         : Variable(parentSense, (const uint8_t)AM2315_TEMP_VAR_NUM,
                    (uint8_t)AM2315_TEMP_RESOLUTION, AM2315_TEMP_VAR_NAME,
                    AM2315_TEMP_UNIT_NAME, varCode, uuid) {}
     /**
-     * @brief Construct a new AOSongAM2315_Temp object.
+     * @brief Construct a new AOSongAM2315a_Temp object.
      *
-     * @note This must be tied with a parent AOSongAM2315 before it can be used.
+     * @note This must be tied with a parent AOSongAM2315a before it can be used.
      */
-    AOSongAM2315_Temp()
+    AOSongAM2315a_Temp()
         : Variable((const uint8_t)AM2315_TEMP_VAR_NUM,
                    (uint8_t)AM2315_TEMP_RESOLUTION, AM2315_TEMP_VAR_NAME,
                    AM2315_TEMP_UNIT_NAME, AM2315_TEMP_DEFAULT_CODE) {}
     /**
-     * @brief Destroy the AOSongAM2315_Temp object - no action needed.
+     * @brief Destroy the AOSongAM2315a_Temp object - no action needed.
      */
-    ~AOSongAM2315_Temp() {}
+    ~AOSongAM2315a_Temp() {}
 };
 /**@}*/
-#endif  // SRC_SENSORS_AOSONGAM2315_H_
+#endif  // SRC_SENSORS_AOSONGAM2315A_H_
