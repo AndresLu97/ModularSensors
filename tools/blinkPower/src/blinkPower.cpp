@@ -2,11 +2,13 @@
 #include <Arduino.h>
 
 
-// Actually used on V1.0a3
+// Testing with V1.1A
+// Tested with V1.0a3
 const char*    mcuBoardVersion = "v0.5b";
 
 // NOTE:  Use -1 for pins that do not apply
-const int32_t serialBaud = 57600;  // Baud rate for debugging
+//const int32_t serialBaud = 57600;  // Baud rate for debugging
+const int32_t serialBaud = 115200;
 const int8_t  greenLED   = 8;       // Pin for the green LED
 const int8_t  redLED     = 9;       // Pin for the red LED
 const int8_t  buttonPin  = 21;      // Pin for debugging mode (ie, button pin)
@@ -28,7 +30,7 @@ void setup(void)
       delay(1);
   }
  
-  Serial.println("blinkPower v0.1 to test switched power");
+  Serial.println("blinkPower v0.2 to test switched power Mayfly 1.1A");
   
   pinMode(powerPin, OUTPUT);
   digitalWrite(powerPin, LOW); //Off
@@ -45,6 +47,19 @@ void setup(void)
 
 }
 
+float readVcc() {
+    const int8_t sensor_Vbatt_PIN    = A6;
+    uint32_t rawAdc = analogRead(sensor_Vbatt_PIN);
+    float adcVoltage  = -0.123;
+    #define PROCADC_REF_V 3.3
+    #define ProcAdcDef_Resolution 10
+    #define ProcAdc_Max ((1 << ProcAdcDef_Resolution) - 1)
+    #define PROCADC_RANGE_MIN_V -0.3  
+    adcVoltage = (PROCADC_REF_V / ProcAdc_Max) * (float)rawAdc;
+    const float  procVoltDividerGain = 4.7;
+    return adcVoltage*procVoltDividerGain;
+ }
+
 int elapsed_time_sec=0;
 #define DELAY_ON_SEC 10
 #define DELAY_OFF_SEC  2
@@ -53,15 +68,20 @@ uint8_t PowerState=1;
 void loop(void) 
 {
 
-  elapsed_time_sec++;
-  Serial.print("Time"); Serial.println(elapsed_time_sec);
   
   if (PowerState) {
+    elapsed_time_sec++;
+    Serial.print("Pass "); Serial.print(elapsed_time_sec);
+    Serial.print (" StartV " );
+    Serial.print(readVcc());
     digitalWrite(powerPin, LOW);
     digitalWrite(greenLED, LOW);
     PowerState =0;
     delay(DELAY_OFF_SEC*1000);
+    Serial.print (" EndV " );
+    Serial.println(readVcc());
   } else {
+
     digitalWrite(powerPin, HIGH); //ON
     digitalWrite(greenLED, HIGH); // ON
     PowerState = 1;
