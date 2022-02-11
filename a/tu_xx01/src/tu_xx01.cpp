@@ -459,7 +459,7 @@ KellerNanolevel nanolevel_snsr(nanolevelModbusAddress, modbusSerial,
 // ==========================================================================
 //    AOSong AM2315 Digital Humidity and Temperature Sensor
 // ==========================================================================
-//use updated version
+//use updated solving  https://github.com/neilh10/ModularSensors/issues/102
 #include <sensors/AOSongAM2315a.h>
 
 // const int8_t I2CPower = 1;//sensorPowerPin;  // Pin to switch power on and

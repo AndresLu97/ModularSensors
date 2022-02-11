@@ -459,7 +459,8 @@ KellerNanolevel nanolevel_snsr(nanolevelModbusAddress, modbusSerial,
 // ==========================================================================
 //    AOSong AM2315 Digital Humidity and Temperature Sensor
 // ==========================================================================
-#include <sensors/AOSongAM2315.h>
+//use updated solving  https://github.com/neilh10/ModularSensors/issues/102
+#include <sensors/AOSongAM2315a.h>
 
 // const int8_t I2CPower = 1;//sensorPowerPin;  // Pin to switch power on and
 // off (-1 if unconnected)
@@ -467,12 +468,12 @@ KellerNanolevel nanolevel_snsr(nanolevelModbusAddress, modbusSerial,
 // Create an AOSong AM2315 sensor object
 // Data sheets says AM2315 and AM2320 have same address 0xB8 (8bit addr) of 1011
 // 1000 or 7bit 0x5c=0101 1100 AM2320 AM2315 address 0x5C
-AOSongAM2315 am23xx(I2CPower);
+AOSongAM2315a am23xx(I2CPower);
 
 // Create humidity and temperature variable pointers for the AM2315
-// Variable *am2315Humid = new AOSongAM2315_Humidity(&am23xx,
+// Variable *am2315Humid = new AOSongAM2315a_Humidity(&am23xx,
 // "12345678-abcd-1234-ef00-1234567890ab"); Variable *am2315Temp = new
-// AOSongAM2315_Temp(&am23xx, "12345678-abcd-1234-ef00-1234567890ab");
+// AOSongAM2315a_Temp(&am23xx, "12345678-abcd-1234-ef00-1234567890ab");
 #endif  // ASONG_AM23XX_UUID
 
 
@@ -840,8 +841,8 @@ Variable* variableList[] = {
 // new BoschBME280_Altitude(&bme280, "12345678-abcd-1234-ef00-1234567890ab"),
 // new MaximDS18_Temp(&ds18, "12345678-abcd-1234-ef00-1234567890ab"),
 #if defined ASONG_AM23XX_UUID
-    new AOSongAM2315_Humidity(&am23xx, ASONG_AM23_Air_Humidity_UUID),
-    new AOSongAM2315_Temp(&am23xx, ASONG_AM23_Air_Temperature_UUID),
+    new AOSongAM2315a_Humidity(&am23xx, ASONG_AM23_Air_Humidity_UUID),
+    new AOSongAM2315a_Temp(&am23xx, ASONG_AM23_Air_Temperature_UUID),
 // ASONG_AM23_Air_TemperatureF_UUID
 // calcAM2315_TempF
 #endif  // ASONG_AM23XX_UUID
@@ -1479,31 +1480,16 @@ void setup() {
 #define LiIon_BAT_REQ BM_PWR_HEAVY_REQ 
 #if defined UseModem_Module && !defined NO_FIRST_SYNC_WITH_NIST
 
+    // The comms module  is supported and its expected to be configured.
+    // ToDo Test - there may be a runtime use case where it exists but shouldn't be used?
     if (batteryCheck(LiIon_BAT_REQ, false,2)) 
     {
         MS_DBG(F("Sync with NIST "), bms.getBatteryVm1(),
            F("Req"), LiIon_BAT_REQ, F("Got"),
            bms.isBatteryStatusAbove(true, LiIon_BAT_REQ));
 
-#if defined DigiXBeeWifi_Module
-        // For the WiFi module, it may not be configured if no ms_cfg.ini file
-        // present,
-        // this supports the standalone logger, but need to get time at
-        // factory/ms_cfg.ini present
-        uint8_t cmp_result = loggerModemPhyDigiWifi->getWiFiId().compareTo(wifiId_def);
-        // MS_DBG(F("cmp_result="),cmp_result,"
-        // ",modemPhy.getWiFiId(),"/",wifiId_def);
-        if (!(cmp_result == 0)) {
-             PRINTOUT(F("Sync with NIST over WiFi network "), loggerModemPhyDigiWifi->getWiFiId());
-            dataLogger.syncRTC();  // Will also set up the modemPhy
-        }
-#else
-        MS_DBG(F("Sync with NIST "));
-        dataLogger.syncRTC();  // Will also set up the modemPhy
-#endif  // DigiXBeeWifi_Module
-        MS_DBG(F("Set modem to sleep"));
-        loggerModemPhyInst->disconnectInternet();
-        loggerModemPhyInst->modemSleepPowerDown();
+        bool syncResult = dataLogger.syncRTC();  // Will also set up the modemPhy
+        PRINTOUT(F("Sync="),syncResult ,F("with NIST over "), loggerModemPhyInst->getModemName());
     } else {
         MS_DBG(F("Skipped sync with NIST as not enough power "), bms.getBatteryVm1(),
            F("Req"), LiIon_BAT_REQ );
