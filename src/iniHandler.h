@@ -45,6 +45,7 @@ const char SEND_OFFSET_MIN_pm[] EDIY_PROGMEM    = "SEND_OFFSET_MIN";
 const char INA219M_MA_MULT_pm[] EDIY_PROGMEM     = "INA219M_MA_MULT";
 const char INA219M_V_THRESHLOW_pm[] EDIY_PROGMEM = "INA219M_V_THRESHLOW";
 
+#if defined UseModem_Module
 const char PROVIDER_MMW_pm[] EDIY_PROGMEM           = "PROVIDER_MMW";
 
 const char CLOUD_ID_pm[] EDIY_PROGMEM           = "CLOUD_ID";
@@ -77,6 +78,7 @@ const char PROVIDER_UBIDOTS_pm[] EDIY_PROGMEM       = "PROVIDER_UBIDOTS";
 //KEY_STRINGS
 const char UB_AUTH_TOKEN_pm[] EDIY_PROGMEM = "UB_AUTH_TOKEN";
 const char UB_DEVICE_ID_pm[] EDIY_PROGMEM   = "UB_DEVICE_ID";
+#endif // UseModem_Module
 
 const char SENSORS_pm[] EDIY_PROGMEM = "SENSORS";
 const char index_pm[] EDIY_PROGMEM   = "index";
@@ -303,42 +305,12 @@ static void epcParser() {
     Logger::setLoggerTimeZone(epc.app.msc.s.time_zone);
 
     /// Used  in uSD print epc.app.msc.s.geolocation_id
-
-    #if defined DigiXBeeCellularTransparent_Module
-    if (isalnum(epc_apn1st))
-    {
-            epc.app.msn.s.network_type=MSCN_TYPE_CELL;
-            SerialStd.print(F("NETWORK APN was '"));
-            SerialStd.print(modemPhy.getApn());
-            modemPhy.setApn(epc_apn, false);
-            SerialStd.print(F("', now set to '"));
-            SerialStd.print(modemPhy.getApn());
-            SerialStd.println("'");
-    }
-    #endif  // DigiXBeeCellularTransparent_Module
-    #if defined DigiXBeeWifi_Module
-    // cheeck for WiFiId and WiFiPwd
-    if (isalnum(epc_WiFiId1st))
-    {
-        SerialStd.print(F("NETWORK WiFiId: was '"));
-        SerialStd.print(modemPhy.getWiFiId());
-        modemPhy.setWiFiId(epc_WiFiId, false);
-        SerialStd.print(F("' now '"));
-        SerialStd.print(modemPhy.getWiFiId());
-        SerialStd.println("'");
-    } 
-    if( isalnum(epc_WiFiPwd1st)) 
-    {
-            SerialStd.print(F("NETWORK WiFiPwd: was '"));
-            SerialStd.print(modemPhy.getWiFiPwd());
-            modemPhy.setWiFiPwd(epc_WiFiPwd, false);
-            SerialStd.print(F("' now '"));
-            SerialStd.print(modemPhy.getWiFiPwd());
-            SerialStd.println("'");
-    }
-    #endif // DigiXBeeWifi_Module
-
     #if defined UseModem_Module
+    PRINTOUT(F("NETWORK type: "),  epc_network);
+    PRINTOUT(F("NETWORK apn: "),  epc_apn);
+    PRINTOUT(F("NETWORK WiFiId : "),  epc_WiFiId);
+    PRINTOUT(F("NETWORK WiFiPwd: "),  epc_WiFiPwd);
+
     PRINTOUT(F("NETWORK COLLECT_READINGS"),epc.app.msn.s.collectReadings_num );
     PRINTOUT(F("NETWORK SEND_OFFSET_MIN"),epc.app.msn.s.sendOffset_min);
     PRINTOUT(F("NETWORK POST_MAX_NUM"),epc.app.msn.s.postMax_num);
@@ -804,28 +776,27 @@ static int inihUnhandledFn(const char* section, const char* name,
         }
     } else if (strcmp_P(section, NETWORK_pm) == 0) {
         // NETWORK PARTS
-#if defined DigiXBeeCellularTransparent_Module
+#if defined UseModem_Module
         if (strcmp_P(name, apn_pm) == 0) {
             #if defined USE_PS_EEPROM
+            epc.app.msn.s.network_type=MODEMT_LTE_DIGI_CATM1; //modemTypesCurrent_t 
             strcpy(epc_apn, value);
+            MS_DBG(F("Use  Cell  apn"), value);
             #endif  // USE_PS_EEPROM
         } else
-#endif  // DigiXBeeCellularTransparent_Module
-
-#if defined DigiXBeeWifi_Module
         if (strcmp_P(name, WiFiId_pm) == 0) 
         {
-            //Set the internet type as WIFI - future may be configurable
-            epc.app.msn.s.network_type=MSCN_TYPE_WIFI;
+            //Set the Network  type as WIFI -
+            #if defined USE_PS_EEPROM
+            epc.app.msn.s.network_type=MODEMT_WIFI_DIGI_S6; //modemTypesCurrent_t 
             strcpy(epc_WiFiId , value);
             MS_DBG(F("Use Ini WiFiId"), value);
+            #endif //USE_PS_EEPROM
         } else if (strcmp_P(name, WiFiPwd_pm) == 0) {
             //Expect there to be WiFiId
             strcpy((char*)epc.app.msn.s.WiFiPwd, value);
             MS_DBG(F("Use Ini WiFiPwd"), value);
         } else
-#endif  // DigiXBeeWifi_Module
-#if defined UseModem_Module
         if (strcmp_P(name, COLLECT_READINGS_pm) == 0) {
             // convert  str to num with error checking
             long collect_readings_local = strtol(value, &endptr, 10);
@@ -873,7 +844,7 @@ static int inihUnhandledFn(const char* section, const char* name,
 
          } else if (strcmp_P(name,SEND_QUE_SZ_NUM_pm) == 0) {
             // convert  str to num with error checking
-            long sendQueSz_num_local = strtol(value, &endptr, 10);
+            long unsigned sendQueSz_num_local = (long unsigned) strtol(value, &endptr, 10);
             if ((sendQueSz_num_local <= (long unsigned int) SEND_QUE_SZ_MAX_NUM ) && (sendQueSz_num_local >= SEND_QUE_SZ_MIN_NUM)  &&
                 (errno != ERANGE)) 
             {
@@ -1058,7 +1029,7 @@ void localAppStorageInit()
                 (char*)F("Factory default"));
 
     #if defined UseModem_Module
-    epc.app.msn.s.network_type= MSCN_TYPE_NONE;
+    epc.app.msn.s.network_type= MODEMT_NONE;
     strcpy_P((char*)epc.app.msn.s.apn,(char*)F(MSCN_APN_DEF_STR));
     strcpy_P((char*)epc.app.msn.s.WiFiId,(char*)F(MSCN_WIFIID_DEF_STR));  
     strcpy_P((char*)epc.app.msn.s.WiFiPwd,(char*)F(MSCN_WIFIPWD_DEF_STR)); 

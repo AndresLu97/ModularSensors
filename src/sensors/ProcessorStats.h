@@ -233,6 +233,22 @@ class ProcessorStats : public Sensor {
     String getSensorLocation(void) override;
 
     /**
+     * @brief Set Board Version
+     * @param version The version of the board, usually called a hardware revision.
+     * - See constructore version for parameters
+     *
+     * @note Its not copied, the _version is a pointer
+     */
+    void setVersion(const char* version) { _version = version;}
+
+    /**
+     * @brief get Version
+     *
+     * @return pointer to the _version 
+     */
+    const char* getVersion() {return _version;}
+
+    /**
      * @copydoc Sensor::addSingleMeasurementResult()
      */
     bool addSingleMeasurementResult(void) override;

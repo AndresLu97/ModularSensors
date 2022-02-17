@@ -2,7 +2,8 @@
 #ifndef SRC_NTP_HELPER_H_
 #define SRC_NTP_HELPER_H_
 #include "Arduino.h"
-#include <AtWiFi.h>
+//#include <AtWiFi.h>
+#include <rpcWiFi.h>
 const unsigned int localPort = 2390;      // local port to listen for UDP packets
 #ifdef USELOCALNTP
     char timeServer[] = "n.n.n.n"; // local NTP server 

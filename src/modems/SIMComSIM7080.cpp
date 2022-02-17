@@ -29,6 +29,23 @@ SIMComSIM7080::SIMComSIM7080(Stream* modemStream, int8_t powerPin,
       gsmClient(gsmModem) {
     _apn = apn;
 }
+SIMComSIM7080::SIMComSIM7080(Stream* modemStream, int8_t powerPin,
+                             int8_t statusPin, bool useCTSStatus,
+                             int8_t modemResetPin, int8_t modemSleepRqPin)
+    : loggerModem(powerPin, statusPin, SIM7080_STATUS_LEVEL, modemSleepRqPin,
+                  SIM7080_RESET_LEVEL, SIM7080_RESET_PULSE_MS, modemSleepRqPin,
+                  SIM7080_WAKE_LEVEL, SIM7080_WAKE_PULSE_MS,
+                  SIM7080_STATUS_TIME_MS, SIM7080_DISCONNECT_TIME_MS,
+                  SIM7080_WAKE_DELAY_MS, SIM7080_ATRESPONSE_TIME_MS),
+#ifdef MS_SIMCOMSIM7080_DEBUG_DEEP
+      _modemATDebugger(*modemStream, DEEP_DEBUGGING_SERIAL_OUTPUT),
+      gsmModem(_modemATDebugger),
+#else
+      gsmModem(*modemStream),
+#endif
+      gsmClient(gsmModem) {
+    //apn needs setting;
+}
 
 // Destructor
 SIMComSIM7080::~SIMComSIM7080() {}

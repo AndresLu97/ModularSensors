@@ -116,13 +116,10 @@ const int8_t sensorPowerPin =
     22;  // MCU pin controlling main sensor power (-1 if not applicable)
 
 // Create the main processor chip "sensor" - for general metadata
-#if defined  MS_MAYLFY_1_0
-const char*    mcuBoardVersion = "v1.0";
-//const char*    mcuBoardVersion = "v1.1"; //fut for next rev
-#else 
-const char*    mcuBoardVersion = "v0.5b";
-#endif 
-ProcessorStats mcuBoardPhy(mcuBoardVersion);
+typedef enum {BT_MAYFLY_0_5, BT_MAYFLY_1_0, BT_last} bt_BoardType_t;
+const char*    mcuBoardVersion_1_x = "v1.0";
+const char*    mcuBoardVersion_0_5 = "v0.5b";
+ProcessorStats mcuBoardPhy(mcuBoardVersion_1_x);
 
 // ==========================================================================
 //    Settings for Additional Serial Ports
@@ -199,16 +196,10 @@ StreamDebugger modemDebugger(modemSerial, STANDARD_SERIAL_OUTPUT);
 #endif  // STREAMDEBUGGER_DBG
 
 // Modem Pins - Describe the physical pin connection of your modem to your board
-#if defined  MS_MAYLFY_1_0
- // MCU pin controlling modem power --- Pin 18 is the power enable pin for the bee socket on Mayfly v1.0,
-const int8_t modemVccPin = 18;   
-// kuldge to always switch on modemVccPwrSwPin Issue #79
-//const int8_t modemVccPwrSwPin = 18;
-#else 
- //  use -1 if using Mayfly 0.5b or if the bee socket is constantly powered (ie you changed SJ18 on Mayfly1.0 to 3.3v)
-const int8_t modemVccPin =
-    -2;  // MCU pin controlling modem power (-1 if not applicable)
-#endif //MS_MAYLFY_1_0
+const int8_t modemVccPin_mayfly_1_x = 18;  //Pin18 on Xbee  Mayfly v1.0,
+const int8_t modemVccPin_mayfly_0_5 = -2; //No power control rev 0.5b
+#define modemVccPin modemVccPin_mayfly_1_x 
+
 const int8_t modemStatusPin =
     19;  // MCU pin used to read modem status (-1 if not applicable)
 const int8_t modemResetPin = -1;//20? MCU modem reset pin (-1 if unconnected)
@@ -220,6 +211,7 @@ const int8_t I2CPower = -1;  // sensorPowerPin; Needs to remain on if any IC pow
                              // off (-1 if unconnected)
 
 #if defined UseModem_Module
+#include <modems/ModemFactory.h>
 // Network connection information
 const char* apn_def =
     APN_CDEF;  // The APN for the gprs connection, unnecessary for WiFi
@@ -227,42 +219,14 @@ const char* wifiId_def =
     WIFIID_CDEF;  // The WiFi access point, unnecessary for gprs
 const char* wifiPwd_def =
     WIFIPWD_CDEF;  // The password for connecting to WiFi, unnecessary for gprs
-#endif             // UseModem_Module
-
-#ifdef DigiXBeeCellularTransparent_Module
-// For any Digi Cellular XBee's
-// NOTE:  The u-blox based Digi XBee's (3G global and LTE-M global) can be used
-// in either bypass or transparent mode, each with pros and cons
-// The Telit based Digi XBees (LTE Cat1) can only use this mode.
-#include <modems/DigiXBeeCellularTransparent.h>
-const long modemBaud       = 9600;   // All XBee's use 9600 by default
-const bool useCTSforStatus = false;  // Flag to use the XBee CTS pin for status
-// NOTE:  If possible, use the STATUS/SLEEP_not (XBee pin 13) for status, but
-// the CTS pin can also be used if necessary
-DigiXBeeCellularTransparent modemXBCT(&modemSerHw, modemVccPin, modemStatusPin,
-                                      useCTSforStatus, modemResetPin,
-                                      modemSleepRqPin, apn_def);
-// Create an extra reference to the modem by a generic name (not necessary)
-DigiXBeeCellularTransparent modemPhy = modemXBCT;
-#endif  // DigiXBeeCellularTransparent_Module
-
-#ifdef DigiXBeeWifi_Module
-// For the Digi Wifi XBee (S6B)
-
-#include <modems/DigiXBeeWifi.h>
 const long modemBaud = 9600;  // All XBee's use 9600 by default
 const bool useCTSforStatus =
     false;  // true? Flag to use the XBee CTS pin for status
-// NOTE:  If possible, use the STATUS/SLEEP_not (XBee pin 13) for status, but
-// the CTS pin can also be used if necessary
-// useCTSforStatus is overload with  useCTSforStatus!-> loggerModem.statusLevel
-// for detecting Xbee SleepReqAct==1
-DigiXBeeWifi modemXBWF(&modemSerHw, modemVccPin, modemStatusPin,
-                       useCTSforStatus, modemResetPin, modemSleepRqPin,
-                       wifiId_def, wifiPwd_def);
-// Create an extra reference to the modem by a generic name (not necessary)
-DigiXBeeWifi modemPhy = modemXBWF;
-#endif  // DigiXBeeWifi_Module
+
+  loggerModem*     loggerModemPhyInst=NULL ;//was modemPhy 
+#define loggerModemPhyDigiWifi ((DigiXBeeWifi *) loggerModemPhyInst)
+#define loggerModemPhyDigiCell ((DigiXBeeCellularTransparent *) loggerModemPhyInst)
+#endif             // UseModem_Module
 
 // ==========================================================================
 // Units conversion functions
@@ -495,7 +459,8 @@ KellerNanolevel nanolevel_snsr(nanolevelModbusAddress, modbusSerial,
 // ==========================================================================
 //    AOSong AM2315 Digital Humidity and Temperature Sensor
 // ==========================================================================
-#include <sensors/AOSongAM2315.h>
+//use updated solving  https://github.com/neilh10/ModularSensors/issues/102
+#include <sensors/AOSongAM2315a.h>
 
 // const int8_t I2CPower = 1;//sensorPowerPin;  // Pin to switch power on and
 // off (-1 if unconnected)
@@ -503,12 +468,12 @@ KellerNanolevel nanolevel_snsr(nanolevelModbusAddress, modbusSerial,
 // Create an AOSong AM2315 sensor object
 // Data sheets says AM2315 and AM2320 have same address 0xB8 (8bit addr) of 1011
 // 1000 or 7bit 0x5c=0101 1100 AM2320 AM2315 address 0x5C
-AOSongAM2315 am23xx(I2CPower);
+AOSongAM2315a am23xx(I2CPower);
 
 // Create humidity and temperature variable pointers for the AM2315
-// Variable *am2315Humid = new AOSongAM2315_Humidity(&am23xx,
+// Variable *am2315Humid = new AOSongAM2315a_Humidity(&am23xx,
 // "12345678-abcd-1234-ef00-1234567890ab"); Variable *am2315Temp = new
-// AOSongAM2315_Temp(&am23xx, "12345678-abcd-1234-ef00-1234567890ab");
+// AOSongAM2315a_Temp(&am23xx, "12345678-abcd-1234-ef00-1234567890ab");
 #endif  // ASONG_AM23XX_UUID
 
 
@@ -876,8 +841,8 @@ Variable* variableList[] = {
 // new BoschBME280_Altitude(&bme280, "12345678-abcd-1234-ef00-1234567890ab"),
 // new MaximDS18_Temp(&ds18, "12345678-abcd-1234-ef00-1234567890ab"),
 #if defined ASONG_AM23XX_UUID
-    new AOSongAM2315_Humidity(&am23xx, ASONG_AM23_Air_Humidity_UUID),
-    new AOSongAM2315_Temp(&am23xx, ASONG_AM23_Air_Temperature_UUID),
+    new AOSongAM2315a_Humidity(&am23xx, ASONG_AM23_Air_Humidity_UUID),
+    new AOSongAM2315a_Temp(&am23xx, ASONG_AM23_Air_Temperature_UUID),
 // ASONG_AM23_Air_TemperatureF_UUID
 // calcAM2315_TempF
 #endif  // ASONG_AM23XX_UUID
@@ -888,7 +853,7 @@ Variable* variableList[] = {
 #if defined MaximDS3231_TEMPF_UUID
     ds3231TempFcalc,
 #endif  // MaximDS3231_TempF_UUID
-#if defined DIGI_RSSI_UUID
+#if 0 //modemPhy not setup, belay defined DIGI_RSSI_UUID
     new Modem_RSSI(&modemPhy, DIGI_RSSI_UUID),
 // new Modem_RSSI(&modemPhy, "12345678-abcd-1234-ef00-1234567890ab"),
 #endif  // DIGI_RSSI_UUID
@@ -1316,6 +1281,16 @@ void setup() {
     Serial.print((char*)epc.hw_boot.serial_num);
     Serial.println(F("'"));
 #endif  // USE_PS_HW_BOOT
+
+    bt_BoardType_t boardType=BT_MAYFLY_1_0;
+    if (0==strncmp((char*)epc.hw_boot.rev, "0.5",3)){
+        boardType=BT_MAYFLY_0_5;
+        Serial.println(F(" Board: Found Mayfly 0.5b"));
+        mcuBoardPhy.setVersion(mcuBoardVersion_0_5); 
+    } else {
+        PRINTOUT( F(" Board: Assume Mayfly 1.0A3 ") );   
+    }
+
     // set up for escape out of battery check if too low.
     // If buttonPress then exit.
     // Button is read inactive as low
@@ -1402,32 +1377,62 @@ void setup() {
     bms.printBatteryThresholds();
 
 #ifdef UseModem_Module
+    //Instaniate modem  
+    LoggerModemFactory  mdmFactory;
+    uint8_t mdmType = epc_network; 
+    loggerModemPhyInst = mdmFactory.createInstance((modemTypesCurrent_t)mdmType,
+        &modemSerHw, modemVccPin, 
+        modemStatusPin, useCTSforStatus, 
+        modemResetPin, modemSleepRqPin); /**/
+    Client* inGsmClient;
+    // Further runtime configuration of the Modem
+    switch (mdmType) {
+    case MODEMT_WIFI_DIGI_S6:
+        loggerModemPhyDigiWifi->setWiFiId(epc_WiFiId, false);
+        loggerModemPhyDigiWifi->setWiFiPwd(epc_WiFiPwd,false);
+        inGsmClient =  &(loggerModemPhyDigiWifi->gsmClient);
+        PRINTOUT(F("Modem config set as WIFI_DIGI_S6"));
+        break;
+    case MODEMT_LTE_DIGI_CATM1:
+        loggerModemPhyDigiCell->setApn(epc_apn, false);
+        inGsmClient =  &(loggerModemPhyDigiCell->gsmClient);
+        PRINTOUT(F("Modem config set as LTE_DIGI_CATM1"));
+        break;
+    default: break;
+        PRINTOUT(F("Modem config ERR** "),mdmType);
+    };
+
+    if (BT_MAYFLY_0_5==boardType) {
+        loggerModemPhyInst->setPowerPin(modemVccPin_mayfly_0_5 );
+    }
+
 #if !defined UseModem_PushData
     const char None_STR[] = "None";
     dataLogger.setSamplingFeatureUUID(None_STR);
 #endif  // UseModem_PushData
+
     // Attach the modem and information pins to the logger
-    if (modemVccPin > -1) {
+    if ( loggerModemPhyInst->getPowerPin() > -1) {
         //For Mayfly1.0 turn on power 
-        // Kludge to allow testing
-        pinMode(modemVccPin , OUTPUT);
-        digitalWrite(modemVccPin, HIGH); //On
+        pinMode(loggerModemPhyInst->getPowerPin()  , OUTPUT);
+        digitalWrite(loggerModemPhyInst->getPowerPin() , HIGH); //On
         PRINTOUT(F("---pwr Xbee ON"));
     } 
-    dataLogger.attachModem(modemPhy);
-    modemPhy.modemHardReset(); //Ensure in known state ~ 5mS
 
-    // modemPhy.setModemLED(modemLEDPin); //Used in UI_status subsystem
+    dataLogger.attachModem(loggerModemPhyInst);
+    loggerModemPhyInst->modemHardReset(); //Ensure in known state ~ 5mS
+
+    // loggerModemPhyInst->setModemLED(modemLEDPin); //Used in UI_status subsystem
 #if defined Modem_SignalPercent_UUID || defined DIGI_RSSI_UUID || \
     defined                                     DIGI_VCC_UID
 #define POLL_MODEM_REQ                           \
     (loggerModem::PollModemMetaData_t)(          \
         loggerModem::POLL_MODEM_META_DATA_RSSI | \
         loggerModem::POLL_MODEM_META_DATA_VCC)
-    modemPhy.pollModemMetadata(loggerModem::POLL_MODEM_META_DATA_RSSI );
+    loggerModemPhyInst->pollModemMetadata(loggerModem::POLL_MODEM_META_DATA_RSSI );
     #else
     //Ensure its all turned OFF.
-    modemPhy.pollModemMetadata(loggerModem::POLL_MODEM_META_DATA_OFF);
+    loggerModemPhyInst->pollModemMetadata(loggerModem::POLL_MODEM_META_DATA_OFF);
 #endif
 #endif  // UseModem_Module
 
@@ -1436,7 +1441,7 @@ void setup() {
     dataLogger.begin();
 #if defined UseModem_PushData
 #if defined USE_PUB_MMW
-    EnviroDIYPOST.begin(dataLogger, &modemPhy.gsmClient,
+    EnviroDIYPOST.begin(dataLogger, inGsmClient, 
                         ps_ram.app.provider.s.ed.registration_token,
                         ps_ram.app.provider.s.ed.sampling_feature);
     EnviroDIYPOST.setDIYHost(ps_ram.app.provider.s.ed.cloudId);
@@ -1445,7 +1450,7 @@ void setup() {
     EnviroDIYPOST.setTimerPostPacing_mS(ps_ram.app.provider.s.ed.timerPostPace_ms);
 #endif //USE_PUB_MMW
 #if defined USE_PUB_TSMQTT
-    TsMqttPub.begin(dataLogger, &modemPhy.gsmClient, 
+    TsMqttPub.begin(dataLogger, inGsmClient , 
                 ps_ram.app.provider.s.ts.thingSpeakMQTTKey,
                 ps_ram.app.provider.s.ts.thingSpeakChannelID, 
                 ps_ram.app.provider.s.ts.thingSpeakChannelKey);
@@ -1455,7 +1460,7 @@ void setup() {
     //TsMqttPub.setTimerPostPacing_mS(ps_ram.app.provider.s.ts.timerPostPace_ms);
 #endif// USE_PUB_TSMQTT
 #if defined USE_PUB_UBIDOTS
-    UbidotsPub.begin(dataLogger, &modemPhy.gsmClient,
+    UbidotsPub.begin(dataLogger, inGsmClient ,
                         ps_ram.app.provider.s.ub.authentificationToken,
                         ps_ram.app.provider.s.ub.deviceID);
     //FUT: njh tbd extensions for Reliable delivery
@@ -1475,31 +1480,16 @@ void setup() {
 #define LiIon_BAT_REQ BM_PWR_HEAVY_REQ 
 #if defined UseModem_Module && !defined NO_FIRST_SYNC_WITH_NIST
 
+    // The comms module  is supported and its expected to be configured.
+    // ToDo Test - there may be a runtime use case where it exists but shouldn't be used?
     if (batteryCheck(LiIon_BAT_REQ, false,2)) 
     {
         MS_DBG(F("Sync with NIST "), bms.getBatteryVm1(),
            F("Req"), LiIon_BAT_REQ, F("Got"),
            bms.isBatteryStatusAbove(true, LiIon_BAT_REQ));
 
-#if defined DigiXBeeWifi_Module
-        // For the WiFi module, it may not be configured if no ms_cfg.ini file
-        // present,
-        // this supports the standalone logger, but need to get time at
-        // factory/ms_cfg.ini present
-        uint8_t cmp_result = modemPhy.getWiFiId().compareTo(wifiId_def);
-        // MS_DBG(F("cmp_result="),cmp_result,"
-        // ",modemPhy.getWiFiId(),"/",wifiId_def);
-        if (!(cmp_result == 0)) {
-             PRINTOUT(F("Sync with NIST over WiFi network "), modemPhy.getWiFiId());
-            dataLogger.syncRTC();  // Will also set up the modemPhy
-        }
-#else
-        MS_DBG(F("Sync with NIST "));
-        dataLogger.syncRTC();  // Will also set up the modemPhy
-#endif  // DigiXBeeWifi_Module
-        MS_DBG(F("Set modem to sleep"));
-        modemPhy.disconnectInternet();
-        modemPhy.modemSleepPowerDown();
+        bool syncResult = dataLogger.syncRTC();  // Will also set up the modemPhy
+        PRINTOUT(F("Sync="),syncResult ,F("with NIST over "), loggerModemPhyInst->getModemName());
     } else {
         MS_DBG(F("Skipped sync with NIST as not enough power "), bms.getBatteryVm1(),
            F("Req"), LiIon_BAT_REQ );

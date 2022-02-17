@@ -1046,6 +1046,23 @@ class loggerModem {
 #define SENSOR_DEFAULT_F -0.0099
 // old standard -9999
 #endif  // SENSOR_DEFAULT
+
+public:
+    /**
+     * @brief Set the power pin.
+     *
+     * If this function is not called, the power pin is defined on init
+     *
+     * @param powerPin The arduino pin number or if none <0 .
+     */
+    inline void   setPowerPin(int8_t powerPin) {_powerPin = powerPin;}
+
+    /**
+     * @brief get the power pin.
+     *
+     * @returns powerPin 
+     */
+    inline int8_t getPowerPin() {return _powerPin;}
 };
 
 /* atl_extension */

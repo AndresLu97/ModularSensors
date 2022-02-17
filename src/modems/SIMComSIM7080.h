@@ -173,6 +173,9 @@ class SIMComSIM7080 : public loggerModem {
      */
     SIMComSIM7080(Stream* modemStream, int8_t powerPin, int8_t statusPin,
                   int8_t modemSleepRqPin, const char* apn);
+    SIMComSIM7080(Stream* modemStream, int8_t powerPin, 
+                int8_t statusPin, bool useCTSStatus,
+                int8_t modemResetPin, int8_t modemSleepRqPin);
     /**
      * @brief Destroy the SIMComSIM7080 object - no action needed
      */
