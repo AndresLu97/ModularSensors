@@ -1,6 +1,6 @@
 /*****************************************************************************
-ms_cfg.h_nano - ModularSensors cfg - KellerNano MMW/WiFi
-
+ms_cfg.h_LT5_lte  - ModularSensors Configuration - tgt _LT5 Acculevel /LTE
+Status 210326: 0.28.3 updated cc, not tested
 Written By:  Neil Hancock www.envirodiy.org/members/neilh20/
 Development Environment: PlatformIO
 Hardware Platform(s): EnviroDIY Mayfly Arduino Datalogger+RS485 Wingboard
@@ -29,8 +29,8 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 // MAYFLY_BAT_AA0  - ExternalVolt/ADS1115 requires external R - ECO4
 // MAYFLY_BAT_STC3100  sensor IC on RS485 WINGBOARD_KNH002
 // MAYFLY_BAT_DIGI Digi Modem LTE with onboard battery measurement
-// Choices applied to define MAYFLY_BAT_xx 1) Stc3100 2) ExternVolage_ACT 3) Digi Mode 4) MAYFLY_BAT_A6
 
+// Choices applied to define MAYFLY_BAT_xx 1) Stc3100 2) ExternVolage_ACT 3) Digi Mode 4) MAYFLY_BAT_A6
 #define MAYFLY_BAT_A6 4
 //#define MAYFLY_BAT_AA0 2
 //FUT #define MAYFLY_BAT_DIGI 3
@@ -38,7 +38,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 
 //#define ENVIRODIY_MAYFLY_TEMPERATURE 1
 //#define Decagon_CTD_UUID 1
-//#define Insitu_TrollSdi12_UUID 1
+#define Insitu_TrollSdi12_UUID 1
 
 #define WINGBOARD_KNH002 1
 #if defined WINGBOARD_KNH002
@@ -46,11 +46,11 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 //#define USE_STC3100_DD 1
 #define MAYFLY_BAT_STC3100 1
 // Only one of NOT both KellerAcculevel and KellerNanolevel as share same ADDR
-//#define KellerAcculevel_ACT 1
+#define KellerAcculevel_ACT 1
 // KellerAcculevel units can be 1 (meter) 2 (feet)
-//#define KellerAcculevel_DepthUnits 2
+#define KellerAcculevel_DepthUnits 2
 
-#define KellerNanolevel_ACT 1
+//#define KellerNanolevel_ACT 1
 #endif //WINGBOARD_KNH002
 
 //Select one of following MAYFLY_BAT_xx as the source for BatterManagement Analysis
@@ -59,10 +59,10 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define MAYFLY_BAT_CHOICE MAYFLY_BAT_STC3100
 // FUT #define MAYFLY_BAT_CHOICE  MAYFLY_BAT_DIGI
 
-#define ASONG_AM23XX_UUID 1
+//#define ASONG_AM23XX_UUID 1
 
-//One light sensors RS485 with power useage
-#define BM_PWR_SENSOR_CONFIG_BUILD_SPECIFIC BM_PWR_LOW_REQ
+//Two heavy sensors with power useage
+#define BM_PWR_SENSOR_CONFIG_BUILD_SPECIFIC BM_PWR_MEDIUM_REQ
 
 // Mayfly configuration
 // Carrier board for Digi XBEE LTE CAT-M1 and jumper from battery
@@ -72,7 +72,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define MFName_DEF "Mayfly"
 #define HwVersion_DEF MFVersion_DEF
 #define HwName_DEF MFName_DEF
-#define CONFIGURATION_DESCRIPTION_STR "Nano MMW Digi WiFi S6/LTE XB3-C-A2"
+#define CONFIGURATION_DESCRIPTION_STR "tu_LT5KA_lte LT500,Acculevel"
 
 #define USE_MS_SD_INI 1
 #define USE_PS_EEPROM 1
@@ -115,7 +115,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 
 
 // Instructions: define only one  _Module
-#define DigiXBeeWifi_Module 1
+//#define DigiXBeeWifi_Module 1
 //#warning infoMayflyWithDigiXBeeWiFi
 //#define DigiXBeeCellularTransparent_Module 1
 //#warning infoMayflyWithDigiXBeeCellTransparent
@@ -124,7 +124,7 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 // thereof #define TINY_GSM_MODEM_UBLOX  // Select for most u-blox cellular
 // modems #define TINY_GSM_MODEM_ESP8266  // Select for an ESP8266 using the
 // DEFAULT AT COMMAND FIRMWARE End TinyGsmClient.h options
-#if defined(DigiXBeeWifi_Module) || defined(DigiXBeeCellularTransparent_Module)
+#if 1 //defined(DigiXBeeWifi_Module) || defined(DigiXBeeCellularTransparent_Module)
 // The Modem is used to push data and also sync Time
 // In standalong logger, no internet, Modem can be required at factor to do a
 // sync Time Normally enable both of the following. In standalone, disable
@@ -264,8 +264,10 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #endif  // MAYFLY_BAT_A6
 
 #if defined MAYFLY_BAT_STC3100
-#define STC3100_Volt_UUID "STC3100Volt_UUID"
-#define STC3100_USED1_mAhr_UUID "STC3100used1_mAhr_UUID"
+//Test configuration for NA13
+#define STC3100_Volt_UUID "Volt0_UUID"
+//#define STC3100_Volt_UUID "STC3100Volt_UUID"
+//#define STC3100_USED1_mAhr_UUID "STC3100used1_mAhr_UUID"
 //#define STC3100_AVLBL_mAhr_UUID "STC3100avlbl_mAhr_UUID"
 #endif // MAYFLY_BAT_STC3100
 

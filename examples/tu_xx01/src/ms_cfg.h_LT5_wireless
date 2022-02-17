@@ -113,17 +113,17 @@ THIS CODE IS PROVIDED "AS IS" - NO WARRANTY IS GIVEN.
 #define loggingInterval_MAX_CDEF_MIN 6 * 60
 
 
-// Instructions: define only one  _Module
+// Supports DigiXBeeCellularTransparent & DigiXBeeWifi
 //#define DigiXBeeWifi_Module 1
 //#warning infoMayflyWithDigiXBeeWiFi
-#define DigiXBeeCellularTransparent_Module 1
+//#define DigiXBeeCellularTransparent_Module 1
 //#warning infoMayflyWithDigiXBeeCellTransparent
 // #define DigiXBeeLTE_Module 1 - unstable
 // #define TINY_GSM_MODEM_SIM800  // Select for a SIM800, SIM900, or variant
 // thereof #define TINY_GSM_MODEM_UBLOX  // Select for most u-blox cellular
 // modems #define TINY_GSM_MODEM_ESP8266  // Select for an ESP8266 using the
 // DEFAULT AT COMMAND FIRMWARE End TinyGsmClient.h options
-#if defined(DigiXBeeWifi_Module) || defined(DigiXBeeCellularTransparent_Module)
+#if 1 //defined(DigiXBeeWifi_Module) || defined(DigiXBeeCellularTransparent_Module)
 // The Modem is used to push data and also sync Time
 // In standalong logger, no internet, Modem can be required at factor to do a
 // sync Time Normally enable both of the following. In standalone, disable
