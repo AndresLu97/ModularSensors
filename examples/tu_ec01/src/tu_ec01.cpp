@@ -16,6 +16,21 @@
  * ======================================================================= */
 
 // ==========================================================================
+//  Defines for the Arduino IDE
+//  NOTE:  These are ONLY needed to compile with the Arduino IDE.
+//         If you use PlatformIO, you should set these build flags in your
+//         platformio.ini
+// ==========================================================================
+/** Start [defines] */
+#ifndef TINY_GSM_RX_BUFFER
+#define TINY_GSM_RX_BUFFER 64
+#endif
+#ifndef TINY_GSM_YIELD_MS
+#define TINY_GSM_YIELD_MS 2
+#endif
+/** End [defines] */
+
+// ==========================================================================
 //  Include the libraries required for any data logger
 // ==========================================================================
 /** Start [includes] */
@@ -85,8 +100,36 @@ persistent_store_t ps_ram;
 #define epc ps_ram
 #endif  //#define USE_MS_SD_INI
 
-
+//  Wifi/Cellular Modem Options
 // ==========================================================================
+/** Start [xbee_cell_transparent] */
+// For any Digi Cellular XBee's
+// NOTE:  The u-blox based Digi XBee's (3G global and LTE-M global)
+// are more stable used in bypass mode (below)
+// The Telit based Digi XBees (LTE Cat1) can only use this mode.
+#include <modems/DigiXBeeCellularTransparent.h>
+// Create a reference to the serial port for the modem
+HardwareSerial& modemSerial = Serial1;  // Use hardware serial if possible
+const int32_t   modemBaud   = 9600;     // All XBee's use 9600 by default
+
+// Modem Pins - Describe the physical pin connection of your modem to your board
+// NOTE:  Use -1 for pins that do not apply
+const int8_t modemVccPin    = -2;    // MCU pin controlling modem power
+const int8_t modemStatusPin = 19;    // MCU pin used to read modem status
+const bool useCTSforStatus = false;  // Flag to use the modem CTS pin for status
+const int8_t modemResetPin = 20;     // MCU pin connected to modem reset pin
+const int8_t modemSleepRqPin = 23;   // MCU pin for modem sleep/wake request
+//const int8_t modemLEDPin = redLED;   // MCU pin connected an LED to show modem
+                                     // status (-1 if unconnected)
+// Network connection information
+const char* apn = "hologram";  // The APN for the gprs connection
+
+DigiXBeeCellularTransparent modemXBCT(&modemSerial, modemVccPin, modemStatusPin,
+                                      useCTSforStatus, modemResetPin,
+                                      modemSleepRqPin, apn);
+// Create an extra reference to the modem by a generic name
+DigiXBeeCellularTransparent modemPHY = modemXBCT;
+/** End [xbee_cell_transparent] */// ==========================================================================
 //  Using the Processor as a Sensor
 // ==========================================================================
 /** Start [processor_sensor] */
@@ -131,7 +174,7 @@ MaximDS3231 ds3231(1);
 const int8_t ECpwrPin   = ECpwrPin_DEF;
 const int8_t ECdataPin1 = ECdataPin1_DEF;
 
-#define EC_RELATIVE_OHMS 2000
+#define EC_RELATIVE_OHMS 2200
 AnalogElecConductivityM analogEC_phy(ECpwrPin, ECdataPin1, EC_RELATIVE_OHMS);
 /** End [AnalogElecConductivity] */
 #endif  // AnalogProcEC_ACT
@@ -270,7 +313,8 @@ processorAdc sensor_batt_V(procVoltPower, sensor_Vbatt_PIN, procVoltDividerGain,
 /** Start [variable_arrays] */
 Variable* variableList[] = {
     new ProcessorStats_SampleNumber(&mcuBoardPhy),
-    new ProcessorStats_Battery(&mcuBoardPhy), new MaximDS3231_Temp(&ds3231),
+    new ProcessorStats_Battery(&mcuBoardPhy), 
+    new MaximDS3231_Temp(&ds3231),
 #if defined AnalogProcEC_ACT
     // Do Analog processing measurements.
     new AnalogElecConductivityM_EC(&analogEC_phy, EC1_UUID),
@@ -280,6 +324,53 @@ Variable* variableList[] = {
     new ExternalVoltage_Volt(&extvolt1, ExternalVoltage_Volt1_UUID),
 #endif
 };
+
+// All UUID's, device registration, and sampling feature information can be
+// pasted directly from Monitor My Watershed.
+// To get the list, click the "View  token UUID list" button on the upper right
+// of the site page.
+
+// *** CAUTION --- CAUTION --- CAUTION --- CAUTION --- CAUTION ***
+// Check the order of your variables in the variable list!!!
+// Be VERY certain that they match the order of your UUID's!
+// Rearrange the variables in the variable list ABOVE if necessary to match!
+// Do not change the order of the variables in the section below.
+// *** CAUTION --- CAUTION --- CAUTION --- CAUTION --- CAUTION ***
+
+// Replace all of the text in the following section with the UUID array from
+// MonitorMyWatershed
+
+// ---------------------   Beginning of Token UUID List
+// ---------------------------------------
+
+
+// Need to audit with variables
+const char* UUIDs[] =  // UUID array for device sensors
+    {
+        "12345678-abcd-1234-ef00-1234567890ab",  // Specific conductance
+                                                 // (Meter_Hydros21_Cond)
+        "12345678-abcd-1234-ef00-1234567890ab",  // Water depth
+                                                 // (Meter_Hydros21_Depth)
+        "12345678-abcd-1234-ef00-1234567890ab",  // Temperature
+                                                 // (Meter_Hydros21_Temp)
+        "12345678-abcd-1234-ef00-1234567890ab",  // Turbidity
+                                                 // (Campbell_OBS3_Turb) (Low)
+        "12345678-abcd-1234-ef00-1234567890ab",  // Turbidity
+                                                 // (Campbell_OBS3_Turb) (High)
+        "12345678-abcd-1234-ef00-1234567890ab",  // Battery voltage
+                                                 // (EnviroDIY_Mayfly_Batt)
+        "12345678-abcd-1234-ef00-1234567890ab",  // Temperature
+                                                 // (Maxim_DS3231_Temp)
+        "12345678-abcd-1234-ef00-1234567890ab",  // Percent full scale
+                                                 // (Digi_Cellular_SignalPercent)
+};
+const char* registrationToken =
+    "12345678-abcd-1234-ef00-1234567890ab";  // Device registration token
+const char* samplingFeature =
+    "12345678-abcd-1234-ef00-1234567890ab";  // Sampling feature UUID
+
+
+// -----------------------   End of Token UUID List
 // Count up the number of pointers in the array
 int variableCount = sizeof(variableList) / sizeof(variableList[0]);
 
@@ -296,6 +387,15 @@ VariableArray varArray;
 Logger dataLogger(LoggerID, loggingIntervaldef, &varArray);
 /** End [loggers] */
 
+// ==========================================================================
+//  Creating Data Publisher[s]
+// ==========================================================================
+/** Start [publishers] */
+// Create a data publisher for the Monitor My Watershed/EnviroDIY POST endpoint
+#include <publishers/EnviroDIYPublisher.h>
+EnviroDIYPublisher EnviroDIYPOST(dataLogger, &modemPHY.gsmClient,
+                                 registrationToken, samplingFeature);
+/** End [publishers] */
 #if defined MS_TTY_USER_INPUT
 // ==========================================================================
 bool userButton1Act = false;
@@ -389,6 +489,9 @@ void setup() {
 
     Serial.print(F("Using ModularSensors Library version "));
     Serial.println(MODULAR_SENSORS_VERSION);
+    Serial.print(F("TinyGSM Library version "));
+    Serial.println(TINYGSM_VERSION);
+    Serial.println();
 
     dataLogger.startFixedWatchdog();
     readAvrEeprom();
@@ -410,7 +513,13 @@ void setup() {
     digitalWrite(redLED, LOW);
     // Blink the LEDs to show the board is on and starting up
     greenredflash();
-    
+    pinMode(20, OUTPUT);  // for proper operation of the onboard flash memory
+                          // chip's ChipSelect (Mayfly v1.0 and later)
+        //set the RTC to be in UTC (UTC+0)
+    Logger::setRTCTimeZone(0);
+    // Attach the modem and information pins to the logger
+    dataLogger.attachModem(modemPHY);
+   // modem.setModemLED(modemLEDPin);
     dataLogger.setLoggerPins(wakePin, sdCardSSPin, sdCardPwrPin, -1, greenLED);
     setupUserButton(); //used for serialInput
 
@@ -423,8 +532,6 @@ void setup() {
     PRINTOUT(F("---parseIni complete\n"));
 #endif  // USE_MS_SD_INI
 
-    //set the RTC to be in UTC (UTC+0)
-    Logger::setRTCTimeZone(0);
 
     // Begin the variable array[s], logger[s], and publisher[s]
     varArray.begin(variableCount, variableList);
