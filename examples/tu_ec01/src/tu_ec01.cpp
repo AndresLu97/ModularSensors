@@ -114,7 +114,7 @@ const int32_t   modemBaud   = 9600;     // All XBee's use 9600 by default
 
 // Modem Pins - Describe the physical pin connection of your modem to your board
 // NOTE:  Use -1 for pins that do not apply
-const int8_t modemVccPin    = -2;    // MCU pin controlling modem power
+const int8_t modemVccPin    = 18;    // MCU pin controlling modem power
 const int8_t modemStatusPin = 19;    // MCU pin used to read modem status
 const bool useCTSforStatus = false;  // Flag to use the modem CTS pin for status
 const int8_t modemResetPin = 20;     // MCU pin connected to modem reset pin
@@ -317,7 +317,7 @@ Variable* variableList[] = {
     new MaximDS3231_Temp(&ds3231),
 #if defined AnalogProcEC_ACT
     // Do Analog processing measurements.
-    new AnalogElecConductivityM_EC(&analogEC_phy, EC1_UUID),
+    new AnalogElecConductivityM_EC(&analogEC_phy), // EC1_UUID),
 #endif  // AnalogProcEC_ACT
 
 #if defined(ExternalVoltage_Volt1_UUID)
@@ -347,13 +347,13 @@ Variable* variableList[] = {
 // Need to audit with variables
 const char* UUIDs[] =  // UUID array for device sensors
     {
-        "12345678-abcd-1234-ef00-1234567890ab",  // Specific conductance
+        "8c57835f-a32f-4d62-82dc-0ba09f04cf52",  // Specific conductance
                                                  // (Meter_Hydros21_Cond)
-        "12345678-abcd-1234-ef00-1234567890ab",  // Water depth
+        "1f2c9e91-3aa6-44d7-9312-160d04fbf877",  // Water depth
                                                  // (Meter_Hydros21_Depth)
-        "12345678-abcd-1234-ef00-1234567890ab",  // Temperature
+        "65e0a9e5-cc8a-4ed6-8d28-127b5ec5e8e9",  // Temperature
                                                  // (Meter_Hydros21_Temp)
-        "12345678-abcd-1234-ef00-1234567890ab",  // Turbidity
+        "a0e41a66-875a-44fc-9e2f-02c6e25f6063",  // Turbidity
                                                  // (Campbell_OBS3_Turb) (Low)
         "12345678-abcd-1234-ef00-1234567890ab",  // Turbidity
                                                  // (Campbell_OBS3_Turb) (High)
@@ -365,9 +365,9 @@ const char* UUIDs[] =  // UUID array for device sensors
                                                  // (Digi_Cellular_SignalPercent)
 };
 const char* registrationToken =
-    "12345678-abcd-1234-ef00-1234567890ab";  // Device registration token
+    "0cf7c40a-232e-457d-87d6-cea5c0757fec";  // Device registration token
 const char* samplingFeature =
-    "12345678-abcd-1234-ef00-1234567890ab";  // Sampling feature UUID
+    "236c674b-69b9-43af-b0d6-33d67b870ecc";  // Sampling feature UUID
 
 
 // -----------------------   End of Token UUID List
@@ -375,7 +375,8 @@ const char* samplingFeature =
 int variableCount = sizeof(variableList) / sizeof(variableList[0]);
 
 // Create the VariableArray object
-VariableArray varArray;
+  VariableArray varArray(variableCount, variableList, UUIDs);
+//VariableArray varArray;
 /** End [variable_arrays] */
 
 
@@ -540,7 +541,10 @@ void setup() {
     // Set up the sensors
     Serial.println(F("Setting up sensors..."));
     varArray.setupSensors();
-
+    
+    Serial.println(F("Waking modem and setting Cellular Carrier Options..."));
+    modemPHY.modemWake();  // NOTE:  This will also set up the modem
+    dataLogger.syncRTC();
     // Create the log file, adding the default header to it
     // Do this last so we have the best chance of getting the time correct and
     // all sensor names correct
