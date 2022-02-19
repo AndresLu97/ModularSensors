@@ -119,7 +119,7 @@ const int8_t sensorPowerPin =
 typedef enum {BT_MAYFLY_0_5, BT_MAYFLY_1_0, BT_last} bt_BoardType_t;
 const char*    mcuBoardVersion_1_x = "v1.0";
 const char*    mcuBoardVersion_0_5 = "v0.5b";
-ProcessorStats mcuBoardPhy(mcuBoardVersion_1_x);
+ProcessorStats mcuBoardPhy(mcuBoardVersion_1_x); //Define board default
 
 // ==========================================================================
 //    Settings for Additional Serial Ports
@@ -587,7 +587,6 @@ Variable*  pLionBatStc3100_var =
 #endif //MAYFLY_BAT_STC3100
 
 
-//#ifdef MAYFLY_BAT_AA0
 #if defined ExternalVoltage_Volt0_UUID
 // ==========================================================================
 //    External Voltage via TI ADS1115
@@ -658,7 +657,7 @@ Variable* pLionBatExt_var =
                            // value from http://vocabulary.odm2.org/units/
                  "extVolt0",  // var code
                  ExternalVoltage_Volt0_UUID);
-#endif  // MAYFLY_BAT_AA0
+#endif  // ExternalVoltage_Volt0_UUID
 
 #if defined MAYFLY_BAT_CHOICE
 #if MAYFLY_BAT_CHOICE == MAYFLY_BAT_STC3100
