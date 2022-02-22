@@ -67,6 +67,20 @@ uint8_t getSendPacingDelay(void) {
 #define SERIALIZE_sendPacingDelay_mSec 2
 uint16_t _sendPacingDelay_mSec = SERIALIZE_sendPacingDelay_mSec;
 
+    uint16_t setSendQueSz_num(uint16_t sqz_num) {
+        MS_DBG(F("setSendQueSz_num"), sqz_num);
+        return _sendQueSz_num = sqz_num;
+    }
+
+    uint16_t getSendQueSz_num() {
+        MS_DBG(F("getSendQueSz_num"), _sendQueSz_num);
+        return _sendQueSz_num;
+    }   
+#if !defined LB_SENDQUESZ_NUM_DEF 
+#define LB_SENDQUESZ_NUM_DEF  2800L //MMWGI_SEND_QUE_SZ_NUM_DEF
+#endif  // LB_SENDQUESZ_NUM_DEF 
+    uint16_t _sendQueSz_num = LB_SENDQUESZ_NUM_DEF ; //See MMMWGI_SEND_QUE_SZ_NUM_DEF 
+
     uint16_t setPostMax_num(uint16_t mp_num) {
         MS_DBG(F("setMaxPost_num"), mp_num);
         return _postMax_num = mp_num;
@@ -77,9 +91,9 @@ uint16_t _sendPacingDelay_mSec = SERIALIZE_sendPacingDelay_mSec;
         return _postMax_num;
     }   
 #if !defined LB_POSTMAX_NUM_DEF 
-#define LB_POSTMAX_NUM_DEF 96L //MMW_TIMER_POST_MAX_MUM_DEF
+#define LB_POSTMAX_NUM_DEF 96L //MMWGI_POST_MAX_RECS_MUM_DEF
 #endif  // LB_POSTMAX_NUM_DEF
-    uint16_t _postMax_num = LB_POSTMAX_NUM_DEF; //See MMW_TIMER_POST_MAX_MUM_DEF    
+    uint16_t _postMax_num = LB_POSTMAX_NUM_DEF; //See MMWGI_POST_MAX_RECS_MUM_DEF   
 
 public:
 void startFixedWatchdog() {
@@ -241,7 +255,7 @@ bool deszLine(File* filep);
 bool deszDbg(void);
 bool postLogOpen();
 bool postLogOpen(const char* postsLogNm_str);
-void postLogLine(uint8_t instance, int16_t rspParam);
+void postLogLine(uint32_t tmr_ms, int16_t rspParam);
 void postLogLine(const char *logMsg,bool addCR=true);
 #define PRINT_LOGLINE_P(msg_parm) \
     char tttbuf[sizeof(msg_parm)+1]; \

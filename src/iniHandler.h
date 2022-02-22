@@ -45,6 +45,7 @@ const char SEND_OFFSET_MIN_pm[] EDIY_PROGMEM    = "SEND_OFFSET_MIN";
 const char INA219M_MA_MULT_pm[] EDIY_PROGMEM     = "INA219M_MA_MULT";
 const char INA219M_V_THRESHLOW_pm[] EDIY_PROGMEM = "INA219M_V_THRESHLOW";
 
+#if defined UseModem_Module
 const char PROVIDER_MMW_pm[] EDIY_PROGMEM           = "PROVIDER_MMW";
 
 const char CLOUD_ID_pm[] EDIY_PROGMEM           = "CLOUD_ID";
@@ -59,9 +60,13 @@ const char TIMER_POST_PACE_MS_pm[] EDIY_PROGMEM = "TIMER_POST_PACE_MS";
 const int  TIMER_POST_PACE_MS_MAX=5000 ;
 const int  TIMER_POST_PACE_MS_MIN=0 ;
 
-const char POST_MAX_NUM_pm[] EDIY_PROGMEM       = "POST_MAX_NUM";
-const int  POST_RANGE_MAX_NUM=2000;
-const int  POST_RANGE_MIN_NUM=0;
+const char POST_MAX_RECS_NUM_pm[] EDIY_PROGMEM       = "POST_MAX_NUM";
+const int  POST_MAX_RECS_RANGE_MAX_NUM=2000;
+const int  POST_MAX_RECS_RANGE_MIN_NUM=0;
+
+const char SEND_QUE_SZ_NUM_pm[] EDIY_PROGMEM       = "SEND_QUE_SZ_NUM";
+const int  SEND_QUE_SZ_MAX_NUM = (MMWGI_SEND_QUE_SZ_NUM_NOP -2);
+const int  SEND_QUE_SZ_MIN_NUM = 0;
 
 const char PROVIDER_TS_pm[] EDIY_PROGMEM           = "PROVIDER_TS";
 //KEY STRINGS 
@@ -73,6 +78,7 @@ const char PROVIDER_UBIDOTS_pm[] EDIY_PROGMEM       = "PROVIDER_UBIDOTS";
 //KEY_STRINGS
 const char UB_AUTH_TOKEN_pm[] EDIY_PROGMEM = "UB_AUTH_TOKEN";
 const char UB_DEVICE_ID_pm[] EDIY_PROGMEM   = "UB_DEVICE_ID";
+#endif // UseModem_Module
 
 const char SENSORS_pm[] EDIY_PROGMEM = "SENSORS";
 const char index_pm[] EDIY_PROGMEM   = "index";
@@ -299,45 +305,16 @@ static void epcParser() {
     Logger::setLoggerTimeZone(epc.app.msc.s.time_zone);
 
     /// Used  in uSD print epc.app.msc.s.geolocation_id
-
-    #if defined DigiXBeeCellularTransparent_Module
-    if (isalnum(epc_apn1st))
-    {
-            epc.app.msn.s.network_type=MSCN_TYPE_CELL;
-            SerialStd.print(F("NETWORK APN was '"));
-            SerialStd.print(modemPhy.getApn());
-            modemPhy.setApn(epc_apn, false);
-            SerialStd.print(F("', now set to '"));
-            SerialStd.print(modemPhy.getApn());
-            SerialStd.println("'");
-    }
-    #endif  // DigiXBeeCellularTransparent_Module
-    #if defined DigiXBeeWifi_Module
-    // cheeck for WiFiId and WiFiPwd
-    if (isalnum(epc_WiFiId1st))
-    {
-        SerialStd.print(F("NETWORK WiFiId: was '"));
-        SerialStd.print(modemPhy.getWiFiId());
-        modemPhy.setWiFiId(epc_WiFiId, false);
-        SerialStd.print(F("' now '"));
-        SerialStd.print(modemPhy.getWiFiId());
-        SerialStd.println("'");
-    } 
-    if( isalnum(epc_WiFiPwd1st)) 
-    {
-            SerialStd.print(F("NETWORK WiFiPwd: was '"));
-            SerialStd.print(modemPhy.getWiFiPwd());
-            modemPhy.setWiFiPwd(epc_WiFiPwd, false);
-            SerialStd.print(F("' now '"));
-            SerialStd.print(modemPhy.getWiFiPwd());
-            SerialStd.println("'");
-    }
-    #endif // DigiXBeeWifi_Module
-
     #if defined UseModem_Module
+    PRINTOUT(F("NETWORK type: "),  epc_network);
+    PRINTOUT(F("NETWORK apn: "),  epc_apn);
+    PRINTOUT(F("NETWORK WiFiId : "),  epc_WiFiId);
+    PRINTOUT(F("NETWORK WiFiPwd: "),  epc_WiFiPwd);
+
     PRINTOUT(F("NETWORK COLLECT_READINGS"),epc.app.msn.s.collectReadings_num );
     PRINTOUT(F("NETWORK SEND_OFFSET_MIN"),epc.app.msn.s.sendOffset_min);
     PRINTOUT(F("NETWORK POST_MAX_NUM"),epc.app.msn.s.postMax_num);
+    PRINTOUT(F("NETWORK SEND_QUE_SZ_NUM"),epc.app.msn.s.sendQueSz_num);
     #endif // UseModem_Module
 
     #if defined USE_PUB_MMW
@@ -508,17 +485,17 @@ static int inihUnhandledFn(const char* section, const char* name,
             epc.app.provider.s.ts.timerPostPace_ms = timerPostPacing_local;
             MS_DBG(F("PROVIDE_TS Set TIMER_POST_PACE_MS: "),timerPostPacing_local);
 
-        /*} else if (strcmp_P(name, POST_MAX_NUM_pm) == 0) {
+        /*} else if (strcmp_P(name, POST_MAX_RECS_NUM_pm) == 0) {
             // convert  str to num with error checking
             long postMax_num_local = strtol(value, &endptr, 10);
-            if ((postMax_num_local <= POST_RANGE_MAX_NUM) && (postMax_num_local >= TIMER_POST_PACE_MS_MIN) &&
+            if ((postMax_num_local <= POST_MAX_RECS_RANGE_MAX_NUM) && (postMax_num_local >= TIMER_POST_PACE_MS_MIN) &&
                 (errno != ERANGE)) 
             {
                 //Null, default below
             } else {
                 PRINTOUT(
                     F("PROVIDER_TS Set POST_MAX_NUM error; ["),
-                    TIMER_POST_PACE_MS_MIN,POST_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
+                    TIMER_POST_PACE_MS_MIN,POST_MAX_RECS_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
                     postMax_num_local=MMW_TIMER_POST_MAX_MUM_DEF;
             }
             //postMax_num = (uint8_t)postMax_num_local;
@@ -577,17 +554,17 @@ static int inihUnhandledFn(const char* section, const char* name,
             epc.app.provider.s.ub.timerPostPace_ms = timerPostPacing_local;
             MS_DBG(F("PROVIDR_UBIDOTS Set TIMER_POST_PACE_MS: "),timerPostPacing_local);
 
-        /*} else if (strcmp_P(name, POST_MAX_NUM_pm) == 0) {
+        /*} else if (strcmp_P(name, POST_MAX_RECS_NUM_pm) == 0) {
             // convert  str to num with error checking
             long postMax_num_local = strtol(value, &endptr, 10);
-            if ((postMax_num_local <= POST_RANGE_MAX_NUM) && (postMax_num_local >= POST_RANGE_MIN_NUM) &&
+            if ((postMax_num_local <= POST_MAX_RECS_RANGE_MAX_NUM) && (postMax_num_local >= POST_MAX_RECS_RANGE_MIN_NUM) &&
                 (errno != ERANGE)) 
             {
                 //Null, default below
             } else {
                 PRINTOUT(
                     F("PROVIDER_UBIDOTS Set POST_MAX_NUM error; (range"),
-                    POST_RANGE_MIN_NUM,POST_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
+                    POST_MAX_RECS_RANGE_MIN_NUM,POST_MAX_RECS_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
                     postMax_num_local=MMW_TIMER_POST_MAX_MUM_DEF;
             }
             //postMax_num = (uint8_t)postMax_num_local;
@@ -799,28 +776,27 @@ static int inihUnhandledFn(const char* section, const char* name,
         }
     } else if (strcmp_P(section, NETWORK_pm) == 0) {
         // NETWORK PARTS
-#if defined DigiXBeeCellularTransparent_Module
+#if defined UseModem_Module
         if (strcmp_P(name, apn_pm) == 0) {
             #if defined USE_PS_EEPROM
+            epc.app.msn.s.network_type=MODEMT_LTE_DIGI_CATM1; //modemTypesCurrent_t 
             strcpy(epc_apn, value);
+            MS_DBG(F("Use  Cell  apn"), value);
             #endif  // USE_PS_EEPROM
         } else
-#endif  // DigiXBeeCellularTransparent_Module
-
-#if defined DigiXBeeWifi_Module
         if (strcmp_P(name, WiFiId_pm) == 0) 
         {
-            //Set the internet type as WIFI - future may be configurable
-            epc.app.msn.s.network_type=MSCN_TYPE_WIFI;
+            //Set the Network  type as WIFI -
+            #if defined USE_PS_EEPROM
+            epc.app.msn.s.network_type=MODEMT_WIFI_DIGI_S6; //modemTypesCurrent_t 
             strcpy(epc_WiFiId , value);
             MS_DBG(F("Use Ini WiFiId"), value);
+            #endif //USE_PS_EEPROM
         } else if (strcmp_P(name, WiFiPwd_pm) == 0) {
             //Expect there to be WiFiId
             strcpy((char*)epc.app.msn.s.WiFiPwd, value);
             MS_DBG(F("Use Ini WiFiPwd"), value);
         } else
-#endif  // DigiXBeeWifi_Module
-#if defined UseModem_Module
         if (strcmp_P(name, COLLECT_READINGS_pm) == 0) {
             // convert  str to num with error checking
             long collect_readings_local = strtol(value, &endptr, 10);
@@ -849,24 +825,43 @@ static int inihUnhandledFn(const char* section, const char* name,
             MS_DBG(F("NETWORK Set SEND_OFFSET_MIN: "),send_offset_min_local);   
             epc.app.msn.s.sendOffset_min =  (uint8_t)send_offset_min_local;
 
-         } else if (strcmp_P(name, POST_MAX_NUM_pm) == 0) {
+         } else if (strcmp_P(name, POST_MAX_RECS_NUM_pm) == 0) {
             // convert  str to num with error checking
             long postMax_num_local = strtol(value, &endptr, 10);
-            if ((postMax_num_local <= POST_RANGE_MAX_NUM) && (postMax_num_local >= POST_RANGE_MIN_NUM) &&
+            if ((postMax_num_local <= POST_MAX_RECS_RANGE_MAX_NUM) && (postMax_num_local >= POST_MAX_RECS_RANGE_MIN_NUM) &&
                 (errno != ERANGE)) 
             {
                 //Null, default below
             } else {
                 PRINTOUT(
                     F("NETWORK Set POST_MAX_NUM error; range["), 
-                    POST_RANGE_MIN_NUM,POST_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
-                    postMax_num_local=MMW_TIMER_POST_MAX_MUM_DEF;
-#warning should MMW_TIMER_POST_MAX_MUM_DEF be MNGI_TIMER_POST_MAX_MUM_DEF 
+                    POST_MAX_RECS_RANGE_MIN_NUM,POST_MAX_RECS_RANGE_MAX_NUM,F("] read:"),postMax_num_local);
+                    postMax_num_local=MMWGI_POST_MAX_RECS_MUM_DEF;
             }
             //postMax_num = (uint8_t)postMax_num_local;
             epc.app.msn.s.postMax_num = postMax_num_local;
             MS_DBG(F("NETWORK Set POST_MAX_NUM: "),postMax_num_local);
 
+         } else if (strcmp_P(name,SEND_QUE_SZ_NUM_pm) == 0) {
+            // convert  str to num with error checking
+            long unsigned sendQueSz_num_local = (long unsigned) strtol(value, &endptr, 10);
+            if ((sendQueSz_num_local <= (long unsigned int) SEND_QUE_SZ_MAX_NUM ) && (sendQueSz_num_local >= SEND_QUE_SZ_MIN_NUM)  &&
+                (errno != ERANGE)) 
+            {
+                //Null, default below
+            } else {
+                if (MMWGI_SEND_QUE_SZ_NUM_NOP==sendQueSz_num_local) {
+                PRINTOUT(
+                    F("NETWORK Set SEND_QUE_SZ_NUM disabled"));
+                } else {
+                PRINTOUT(
+                    F("NETWORK Set SEND_QUE_SZ_NUM disabled, error, range["), 
+                    (long unsigned)SEND_QUE_SZ_MAX_NUM ,SEND_QUE_SZ_MIN_NUM ,F("] read:"),sendQueSz_num_local);
+                }
+                sendQueSz_num_local=MMWGI_SEND_QUE_SZ_NUM_DEF;
+            }
+            epc.app.msn.s.sendQueSz_num = sendQueSz_num_local;
+            MS_DBG(F("NETWORK Set SEND_QUE_SZ_NUM: "),sendQueSz_num_local);
         } else
 #endif // UseModem_Module
         {
@@ -1034,13 +1029,14 @@ void localAppStorageInit()
                 (char*)F("Factory default"));
 
     #if defined UseModem_Module
-    epc.app.msn.s.network_type= MSCN_TYPE_NONE;
+    epc.app.msn.s.network_type= MODEMT_NONE;
     strcpy_P((char*)epc.app.msn.s.apn,(char*)F(MSCN_APN_DEF_STR));
     strcpy_P((char*)epc.app.msn.s.WiFiId,(char*)F(MSCN_WIFIID_DEF_STR));  
     strcpy_P((char*)epc.app.msn.s.WiFiPwd,(char*)F(MSCN_WIFIPWD_DEF_STR)); 
     epc.app.msn.s.collectReadings_num =MNGI_COLLECT_READINGS_DEF;
     epc.app.msn.s.sendOffset_min = MNGI_SEND_OFFSET_MIN_DEF;
-    epc.app.msn.s.postMax_num = MMW_TIMER_POST_MAX_MUM_DEF;  
+    epc.app.msn.s.postMax_num =    MMWGI_POST_MAX_RECS_MUM_DEF;  
+    epc.app.msn.s.sendQueSz_num =  MMWGI_SEND_QUE_SZ_NUM_DEF;  
 
     epc.app.provider.provider_type=  PROVID_TYPE_MMW;
     strcpy_P((char*)epc.app.provider.s.ed.cloudId, (char*) F(PROVID_DEF_STR));
@@ -1149,7 +1145,8 @@ void readAvrEeprom() {
             F(" WiFiPwd="),(char*)epc.app.msn.s.WiFiPwd,
             F("\n\r COLLECT_READINGS="), epc.app.msn.s.collectReadings_num,
             F(" SEND_OFFSET_MIN="), epc.app.msn.s.sendOffset_min,
-            F(" POST_MAX_NUM="),epc.app.msn.s.postMax_num 
+            F(" POST_MAX_NUM="),epc.app.msn.s.postMax_num,
+            F(" SEND_QUE_SZ_NUM="),epc.app.msn.s.sendQueSz_num   
             );
 #endif //defined UseModem_Module
 

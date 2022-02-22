@@ -150,11 +150,11 @@ typedef struct {
 #define USE_PS_modularSensorsNetwork 1
 #endif  // UseModem_Module
 #if defined(USE_PS_modularSensorsNetwork)
-//MSCN_TYPE_XXX is the Network Type modem 
-#define MSCN_TYPE_NONE 0
+//MSCN_TYPE_XXX is the Network Type modem  - modemTypesCurrent_t 
+/*#define MSCN_TYPE_NONE 0
 #define MSCN_TYPE_CELL 1
 #define MSCN_TYPE_WIFI 2
-#define MSCN_TYPE_LORA 3
+#define MSCN_TYPE_LORA 3 */
 #define MSCN_APN_SZ 32
 #define MSCN_APN_DEF_STR "APN_NONE"
 #define MSCN_WIFI_ID_SZ 32
@@ -167,20 +167,29 @@ typedef struct {
 #ifndef MNGI_SEND_OFFSET_MIN_DEF 
 #define MNGI_SEND_OFFSET_MIN_DEF 100
 #endif //MNGI_SEND_OFFSET_MIN_DEF 
-#ifndef MMW_TIMER_POST_MAX_MUM_DEF
-#define MMW_TIMER_POST_MAX_MUM_DEF 100
-#endif //MMW_TIMER_POST_MAX_MUM_DEF 
+#ifndef MMWGI_POST_MAX_RECS_MUM_DEF
+#define MMWGI_POST_MAX_RECS_MUM_DEF 100
+#endif //MMW_POST_MAX_RECS_MUM_DEF 
+
+//This turns off all queue operation
+#define MMWGI_SEND_QUE_SZ_NUM_NOP 0xFFFF
+#ifndef MMWGI_SEND_QUE_SZ_NUM_DEF
+#define MMWGI_SEND_QUE_SZ_NUM_DEF MMWGI_SEND_QUE_SZ_NUM_NOP 
+#endif //MMWGI_SEND_QUE_SZ_NUM_DEF 
+
 typedef struct {
-    uint8_t network_type; // 0=apn ,1=wifi network 
+    uint8_t network_type; // 0=apn ,1=wifi network  - modem type modemTypesCurrent_t 
     uint8_t apn[MSCN_APN_SZ];           // 32
     uint8_t WiFiId[MSCN_WIFI_ID_SZ];    // 32?
     uint8_t WiFiPwd[MSCN_WIFI_PWD_SZ];  // 32??
     uint8_t collectReadings_num; // 1-30
     uint8_t sendOffset_min;      //0-30
     uint16_t postMax_num; //0 no limit,1~2000  
+    uint16_t sendQueSz_num; //0 none stored.  FFFF no limit  
 } msn01_t;
 #define MSN_ACTIVE msn01_t
 
+#define epc_network         epc.app.msn.s.network_type
 #define epc_apn      (char*)epc.app.msn.s.apn
 #define epc_apn1st          epc.app.msn.s.apn[0]
 #define epc_WiFiId   (char*)epc.app.msn.s.WiFiId

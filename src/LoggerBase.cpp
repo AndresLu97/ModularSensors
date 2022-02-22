@@ -354,7 +354,9 @@ String Logger::getValueStringAtI(uint8_t position_i) {
 void Logger::attachModem(loggerModem& modem) {
     _logModem = &modem;
 }
-
+void Logger::attachModem(loggerModem* modem) {
+    _logModem = modem;
+}
 
 // Takes advantage of the modem to synchronize the clock
 bool Logger::syncRTC() {
@@ -384,16 +386,17 @@ bool Logger::syncRTC() {
             const static char COULD_NOT_WAKE_pm[] EDIY_PROGMEM = "Could not wake modem for RTC sync.";
             PRINT_LOGLINE_P(COULD_NOT_WAKE_pm);
         }
+        watchDogTimer.resetWatchDog();
+        // Power down the modem - but only if there will be more than 15 seconds
+        // before the NEXT logging interval - it can take the modem that long to
+        // shut down
+        if (Logger::getNowEpochUTC() % (_loggingIntervalMinutes * 60) > 15) {
+            Serial.println(F("Putting modem to sleep"));
+            _logModem->disconnectInternet();
+            _logModem->modemSleepPowerDown();
+        }
     }
     watchDogTimer.resetWatchDog();
-    // Power down the modem - but only if there will be more than 15 seconds
-    // before the NEXT logging interval - it can take the modem that long to
-    // shut down
-    if (Logger::getNowEpochUTC() % (_loggingIntervalMinutes * 60) > 15) {
-        Serial.println(F("Putting modem to sleep"));
-        _logModem->disconnectInternet();
-        _logModem->modemSleepPowerDown();
-    }
     return success;
 }
 

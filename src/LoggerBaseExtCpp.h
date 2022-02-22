@@ -984,7 +984,9 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                 deszRdelStart();
                 // MS_START_DEBUG_TIMER;
                 tmrGateway_ms = millis();
+                uint32_t tmrThisPublish_ms;
                 while ((dslStatus = deszRdelLine())) {
+                    tmrThisPublish_ms = millis();
                     if (internetPresent) {
                         rspCode = dataPublishers[i]->publishData();
                     } else {
@@ -994,7 +996,7 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                     watchDogTimer.resetWatchDog();
                     // MS_DBG(F("Rsp"), rspCode, F(", in"),
                     // MS_PRINT_DEBUG_TIMER,    F("ms\n"));
-                    postLogLine(i, rspCode);
+                    postLogLine( (millis() -tmrThisPublish_ms), rspCode);
 
                     if (HTTPSTATUS_CREATED_201 != rspCode) {
 #define DESLZ_STATUS_UNACK '1'
@@ -1005,12 +1007,19 @@ void Logger::publishDataQuedToRemotes(bool internetPresent) {
                             deszq_line[DESLZ_STATUS_POS] = DESLZ_STATUS_UNACK;
                         }
 #endif  // if x
-                        retVal = serzQuedFile.print(deszq_line);
-                        if (0 >= retVal) {
-                            PRINTOUT(F("pubDQTR serzQuedFil err"), retVal);
+#if defined(USE_PS_modularSensorsNetwork)
+                        if ((desz_pending_records >= _sendQueSz_num)&&(MMWGI_SEND_QUE_SZ_NUM_NOP != _sendQueSz_num )) {
+                                PRINTOUT(F("pubDQTR QuedFull, skip reading. sendQue "),  _sendQueSz_num);
+                                postLogLine(0,rspCode); //Log skipped readings
+                        } else 
+ #endif // USE_PS_modularSensorsNetwork
+                        {
+                            retVal = serzQuedFile.print(deszq_line);
+                            if (0 >= retVal) {
+                                PRINTOUT(F("pubDQTR serzQuedFil err"), retVal);
+                            }
+                            desz_pending_records++;  // TODO: njh per publisher
                         }
-                        desz_pending_records++;  // TODO: njh per publisher
-
                         /*TODO njh process
                         if (HTTPSTATUS_NC_901 == rspCode) {
                             MS_DBG(F("pubDQTR abort this
@@ -1165,7 +1174,7 @@ bool Logger::serzQuedCloseFile(bool flush) {
 #define QUEOLD_BASE_FN_STR "QUEDEL01.TXT"
 inline uint16_t Logger::serzQuedFlushFile() {
     /*  The flush algorithim is, 
-     copy unsent lines to a temporary_file.
+     copy unsent lines to a temporary_file up to _sendQueSz_num, and then discard rest
      Assumes serzQuedFile points incoming file
      when complete rename serzQuedFile  to delete_file
      rename temporary_file to serzQuedFile to complete flush
@@ -1176,6 +1185,7 @@ inline uint16_t Logger::serzQuedFlushFile() {
     int16_t retNum;
     int16_t  num_char ;
     uint16_t num_lines = 0;   
+    uint16_t num_skipped=0;
     bool    retBool;
 
     // Check if exists and delete
@@ -1210,19 +1220,36 @@ inline uint16_t Logger::serzQuedFlushFile() {
     MS_DBG(F("seQFF cpy lines across"));
     while (0 < (num_char = serzQuedFile.fgets(deszq_line,
                                                 QUEFILE_MAX_LINE))) {
-        retNum = tgtoutFile.write(deszq_line, num_char);
-        // Squelch last char LF
-        deszq_line[sizeof(deszq_line) - 1] = 0;
-        MS_DBG(deszq_line);
-        if (retNum != num_char) {
-            PRINTOUT(F("seQFF tgtoutFile write3 err"), num_char,
-                        retNum);
-            // sd1_Err("seQFF write4");
-            break;
-        }
-        num_lines++;
-    }
 
+#if defined(USE_PS_modularSensorsNetwork)
+        if ((num_lines>=_sendQueSz_num)&&(MMWGI_SEND_QUE_SZ_NUM_NOP != _sendQueSz_num )) {
+            /*Limit sendQueSz on Copy, implicitly this not on creation 
+            This is the first pass at limiting the size of the que by dumping the newest.
+            FIFO.
+            Future may want to keep the latest readings 
+            */
+            postLogLine((MAX_NUMBER_SENDERS+1),HTTPSTATUS_NC_903);
+            num_skipped++;
+        } else
+#endif // USE_PS_modularSensorsNetwork 
+        {
+
+            retNum = tgtoutFile.write(deszq_line, num_char);
+            // Squelch last char LF
+            deszq_line[sizeof(deszq_line) - 1] = 0;
+            MS_DBG(deszq_line);
+            if (retNum != num_char) {
+                PRINTOUT(F("seQFF tgtoutFile write3 err"), num_char,
+                            retNum);
+                // sd1_Err("seQFF write4");
+                break;
+            }
+            num_lines++;
+        }
+    }
+    if (num_skipped){ 
+        PRINTOUT(F("seQFF sendQue Size "), _sendQueSz_num, F(",queued"),num_lines, F(",latest readings discarded"),num_skipped);
+    };
     //Cleanup flushed serzQuedFile to del_file as debugging aid
     if (sd1_card_fatfs.exists(queDelFn)) {
         if (!sd1_card_fatfs.remove(queDelFn)) {
@@ -1440,7 +1467,7 @@ bool Logger::deszqNextCh(void) {
     deszq_nextCharSz  = strlen(deszq_nextChar);
     if ((0 == deszq_nextCharSz)) {
         // Found end of line
-        MS_DEEP_DBG(F("dSRN unexpected EOL "));
+        MS_DBG(F("dSRN unexpected EOL "));
         return false;
     } else if (NULL == nextCharEnd) {
         // Found <value>EOF ~ nextSr_sz is valid
@@ -1523,19 +1550,15 @@ bool Logger::postLogOpen(const char* postLogNam_str) {
     bool retVal = false;
 #if defined MS_LOGGERBASE_POSTS
     // Generate the file name from logger ID and date
-    String fileName = String(postLogNam_str);
-
     // Create rotating log of 4 chars YYMM - formatDateTime is YYYY MM DD
      String nameTemp = formatDateTime_str(getNowEpochTz());
 
     // Drop middle _ and get YYMM
-    fileName += nameTemp.substring(2, 4) + nameTemp.substring(5, 7);
-
-    fileName += ".log";
-    MS_DBG(F("PLO postLog file"), fileName);
+    String fileName = String(postLogNam_str + nameTemp.substring(2, 4) + nameTemp.substring(5, 7) + ".log");
 
     // Convert the string filename to a character file name for SdFat
-    uint8_t fileNameLength = fileName.length() + 1;
+    uint16_t fileNameLength = fileName.length()+2;
+    MS_DBG(F("PLO postLog file"), fileName, F("res len"),fileNameLength);
     char    charFileName[fileNameLength];
     fileName.toCharArray(charFileName, fileNameLength);
 
@@ -1572,7 +1595,7 @@ void        Logger::postLogClose() {
 #endif  // MS_LOGGERBASE_POSTS
 }
 
-void Logger::postLogLine(uint8_t instance, int16_t rspParam) {
+void Logger::postLogLine(uint32_t tmr_ms, int16_t rspParam) {
 // If debug ...keep record
 #if defined MS_LOGGERBASE_POSTS
 #if 0
@@ -1590,10 +1613,10 @@ void Logger::postLogLine(uint8_t instance, int16_t rspParam) {
     postsLogHndl.print(F(",POST,"));
     itoa(rspParam, tempBuffer, 10);
     postsLogHndl.print(tempBuffer);
-    postsLogHndl.print(F(","));
-    itoa(dataPublishers[instance]->getTimerPostTimeout_mS(), tempBuffer, 10);
-    postsLogHndl.print(tempBuffer);
-    postsLogHndl.print(F(","));
+        postsLogHndl.print(F(","));
+        itoa(tmr_ms, tempBuffer, 10);
+        postsLogHndl.print(tempBuffer);
+        postsLogHndl.print(F(","));
     postsLogHndl.print(deszq_line);
 #endif  //#if defined MS_LOGGERBASE_POSTS
 }
@@ -1611,7 +1634,7 @@ void Logger::postLogLine(const char *logMsg,bool addCRNL) {
     }
     char tempBuffer[TEMP_BUFFER_SZ];
     //Print internal time
-    formatDateTime_str(getNowEpochTz)
+    formatDateTime_str(getNowEpochTz())
         .toCharArray(tempBuffer, TEMP_BUFFER_SZ);    
     postsLogHndl.print(tempBuffer);
     postsLogHndl.print(F(",MSG,"));

@@ -109,6 +109,9 @@ class DigiXBeeWifi : public DigiXBee {
     DigiXBeeWifi(Stream* modemStream, int8_t powerPin, int8_t statusPin,
                  bool useCTSStatus, int8_t modemResetPin,
                  int8_t modemSleepRqPin, const char* ssid, const char* pwd);
+    DigiXBeeWifi(Stream* modemStream, int8_t powerPin, 
+                int8_t statusPin, bool useCTSStatus,
+                int8_t modemResetPin, int8_t modemSleepRqPin);
     /**
      * @brief Destroy the Digi XBee Wifi object - no action taken
      */

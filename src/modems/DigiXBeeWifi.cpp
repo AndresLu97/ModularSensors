@@ -36,6 +36,21 @@ DigiXBeeWifi::DigiXBeeWifi(Stream* modemStream, int8_t powerPin,
     _pwd  = pwd;
 }
 
+DigiXBeeWifi::DigiXBeeWifi(Stream* modemStream, int8_t powerPin,
+                           int8_t statusPin, bool useCTSStatus,
+                           int8_t modemResetPin, int8_t modemSleepRqPin)
+    : DigiXBee(powerPin, statusPin, useCTSStatus, modemResetPin,
+               modemSleepRqPin),
+#ifdef MS_DIGIXBEEWIFI_DEBUG_DEEP
+      _modemATDebugger(*modemStream, DEEP_DEBUGGING_SERIAL_OUTPUT),
+      gsmModem(_modemATDebugger, modemResetPin),
+#else
+      gsmModem(*modemStream, modemResetPin),
+#endif
+      gsmClient(gsmModem) {
+    //_ssid = ssid;
+    //_pwd  = pwd;
+}
 // Destructor
 DigiXBeeWifi::~DigiXBeeWifi() {}
 

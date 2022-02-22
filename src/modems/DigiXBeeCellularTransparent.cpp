@@ -31,6 +31,22 @@ DigiXBeeCellularTransparent::DigiXBeeCellularTransparent(
     _pwd = pwd;
 }
 
+DigiXBeeCellularTransparent::DigiXBeeCellularTransparent(
+    Stream* modemStream, int8_t powerPin, 
+    int8_t statusPin, bool useCTSStatus,
+    int8_t modemResetPin, int8_t modemSleepRqPin)
+    : DigiXBee(powerPin, statusPin, useCTSStatus, modemResetPin,
+               modemSleepRqPin),
+#ifdef MS_DIGIXBEECELLULARTRANSPARENT_DEBUG_DEEP
+      _modemATDebugger(*modemStream, DEEP_DEBUGGING_SERIAL_OUTPUT),
+      gsmModem(_modemATDebugger, modemResetPin),
+#else
+      gsmModem(*modemStream, modemResetPin),
+#endif
+      gsmClient(gsmModem) {
+    ///apn needs setting;
+}
+
 // Destructor
 DigiXBeeCellularTransparent::~DigiXBeeCellularTransparent() {}
 
